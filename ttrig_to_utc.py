@@ -30,6 +30,9 @@ def ttrig_to_utc(t, trigtime):
     if minutes < 10:
        minutes = '0' + str(minutes)
 
+    if np.floor(seconds) < 10:
+       second s= '0' + str(seconds)
+
     utc = str(hours) + ':' + str(minutes) + ':' + str(seconds)
 
     print('The time in UTC is ' + utc)
