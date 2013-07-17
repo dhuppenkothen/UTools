@@ -21,9 +21,9 @@ def flatprior(x, xmin=None, xmax = None):
         else:
             return 0.0
     elif xmax == None and not xmin == None:
-        xswitch (x >= xmin)
+        xswitch = (x >= xmin)
         if xswitch:
-            return(gaussprior(x, 0.0, 1000.0)/2.0
+            return gaussprior(x, 0.0, 1000.0)/2.0
         else:
             return 0.0
     else:
@@ -34,7 +34,7 @@ def flatprior(x, xmin=None, xmax = None):
             return 0.0
 
 def gaussprior(x, mean, sigma):
-    px = scipy.stats.norm.pdf(x, mea sigma)
+    px = scipy.stats.norm.pdf(x, me, sigma)
     return px
 
 
