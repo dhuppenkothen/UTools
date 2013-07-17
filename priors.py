@@ -34,7 +34,7 @@ def flatprior(x, xmin=None, xmax = None):
             return 0.0
 
 def gaussprior(x, mean, sigma):
-    px = scipy.stats.norm.pdf(x, me, sigma)
+    px = scipy.stats.norm.pdf(x, mean, sigma)
     return px
 
 
