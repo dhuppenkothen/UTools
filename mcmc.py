@@ -34,6 +34,9 @@ class MarkovChainMonteCarlo(object):
         ## write out messages and results in this logfile:
         self.logfile = gt.TwoPrint(test + '.dat')
 
+        return
+
+
     ### perform a maximum a posteriori fit on the data
     def map_fit(self, ain, bounds=None, fitmethod='bfgs', obs=True, **kwargs):
 
@@ -309,4 +312,32 @@ olor=colours[j])
 
 
 
+
+def MetropolisHastings(MarkovChainMonteCarlo, object):
+
+    def __init__(self, x, y, lpost, logfile='test', datatype=None, emcee=True):
+
+        self.emcee = emcee
+
+        MarkovChainMonteCarlo.__init__(x, y, lpost, logfile=logfile, datatype=datatype)
+        return
+
+
+    def run_mcmc(self, popt=None, cov=None, nchain=200, niter=100, burnin=100)
+
+        if not popt and not cov:
+            try:
+                self.popt
+                self.cov
+            except AttributeError:
+                raise Exception('No parameter set and covariance matrix given. Aborting ...')
+
+        else:
+            self.popt = popt
+            self.cov = cov
+
+        for nc in xrange(nchain):
+            if self.emcee:
+
+## need to define MarkovChain object here, so I can run several of them :)
 
