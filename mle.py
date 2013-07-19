@@ -573,32 +573,32 @@ class MaxLikelihood(object):
     ### noise = if True, the last parameter in ain is noise and will be renormalized
     ### residuals = put list of residuals here if they should be fit rather than self.y
 
-    def mlest(self, func, ain, bounds = None, nmax = 1, obs=True, noise=None, residuals = None, neg=True):
+    def mlest(self, func, ain, bounds = None, obs=True, neg=True, functype='posterior'):
 
         ### extract frequency and powers from periodogram
-        freq = np.array(self.x)
-        if not residuals == None:
-            power = residuals
-        else:
-            power = np.array(self.y)
+        #freq = np.array(self.x)
+        #if not residuals == None:
+        #    power = residuals
+        #else:
+        #    power = np.array(self.y)
 
-        lenpower = float(len(self.y))
+        #lenpower = float(len(self.y))
  
         ## renormalize normalization so it's in the right range
-        varobs = np.sum(power)
-        varmod = np.sum(func(freq, *ain))
-        renorm = varobs/varmod
+        #varobs = np.sum(power)
+        #varmod = np.sum(func(freq, *ain))
+        #renorm = varobs/varmod
 
-        if len(ain) > 1:      
-            ain[1] = ain[1] + np.log(renorm)
+        #if len(ain) > 1:      
+        #    ain[1] = ain[1] + np.log(renorm)
 
  
         ### If last parameter is noise level, renormalize noise level
         ### to something useful:
-        if not noise == None:
-            ### take the last 50 elements of the power spectrum
-            noisepower = power[-50:]
-            meannoise = np.log(np.mean(noisepower))
+        #if not noise == None:
+        #    ### take the last 50 elements of the power spectrum
+        #    noisepower = power[-50:]
+        #    meannoise = np.log(np.mean(noisepower))
 
 #            if func == pl_qpo:
 #                ain[2] = meannoise
@@ -606,76 +606,80 @@ class MaxLikelihood(object):
 #                ain[4] = meannoise
 
 #            else:
-            ain[noise] = meannoise
+        #    ain[noise] = meannoise
 
 
         ### definition of the likelihood function 
-        def maxlike(pars):
-            funcval = func(freq, *pars)
-            res = np.sum(np.log(funcval))+ np.sum(power/funcval)
-            return res    
+        #def maxlike(pars):
+        #    funcval = func(freq, *pars)
+        #    res = np.sum(np.log(funcval))+ np.sum(power/funcval)
+        #    return res    
 
-        res = maxlike(ain)
+        #res = maxlike(ain)
 
-        fitparams = _fitting(maxlike, ain, bounds, obs=True)
+        fitparams = _fitting(func, ain, bounds, obs=True)
 
-        fitparams["model"] = str(func).split()[1]
-        fitparams["mfit"] = func(self.x, *fitparams['popt'])
+        #fitparams["model"] = str(func).split()[1]
+        #fitparams["mfit"] = func(self.x, *fitparams['popt'])
 
         ### calculate model power spectrum from optimal parameters
         #fitparams['mfit'] = func(self.x, *fitparams['popt'])
         ### figure-of-merit (SSE)
-        fitparams['merit'] = np.sum(((self.y-fitparams['mfit'])/fitparams['mfit'])**2.0)
+        #fitparams['merit'] = np.sum(((self.y-fitparams['mfit'])/fitparams['mfit'])**2.0)
 
         ### find highest outlier
-        plrat = 2.0*(self.y/fitparams['mfit'])
-        fitparams['sobs'] = np.sum(plrat)
+        #plrat = 2.0*(self.y/fitparams['mfit'])
+        #fitparams['sobs'] = np.sum(plrat)
 
  
-        if nmax ==1:
+        #if nmax ==1:
             ### plmaxpow is the maximum of 2*data/model 
-            plmaxpow = max(plrat[1:])
+        #    plmaxpow = max(plrat[1:])
             #print('plmaxpow: ' + str(plmaxpow))
-            plmaxind = np.where(plrat == plmaxpow)[0][0]
+        #    plmaxind = np.where(plrat == plmaxpow)[0][0]
             #print('plmaxind: ' + str(plmaxind))
-            plmaxfreq = self.x[plmaxind]
+        #    plmaxfreq = self.x[plmaxind]
  
-        else: 
+        #else: 
 
-            plratsort = plrat.sort()
-            plmaxpow = plrat[-nmax:]
+        #    plratsort = plrat.sort()
+        #    plmaxpow = plrat[-nmax:]
            
-            plmaxind, plmaxfreq = [], []
-            for p in plmaxpow:
-                plmaxind_temp = np.where(plrat == p)[0][0]
-                plmaxind.append(plmaxind_temp)
-                plmaxfreq.append(self.x[plmaxind_temp])
+        #    plmaxind, plmaxfreq = [], []
+        #    for p in plmaxpow:
+        #        plmaxind_temp = np.where(plrat == p)[0][0]
+        #        plmaxind.append(plmaxind_temp)
+        #        plmaxfreq.append(self.x[plmaxind_temp])
 
 
-        fitparams['maxpow'] =  plmaxpow
-        fitparams['maxind'] = plmaxind
-        fitparams['maxfreq'] = plmaxfreq
+        #fitparams['maxpow'] =  plmaxpow
+        #fitparams['maxind'] = plmaxind
+        #fitparams['maxfreq'] = plmaxfreq
 
 
 
         ## do a KS test comparing residuals to the exponential distribution
-        plks = scipy.stats.kstest(plrat/2.0, 'expon', N=len(plrat))
-        fitparams['ksp'] = plks[1]
+        #plks = scipy.stats.kstest(plrat/2.0, 'expon', N=len(plrat))
+        #fitparams['ksp'] = plks[1]
 
 
-        print("The figure-of-merit function for this model is: " + str(fitparams['merit']) + " and the fit for " + str(fitparams['dof']) + " dof is " + str(fitparams['merit']/fitparams['dof']) + ".")
+        #print("The figure-of-merit function for this model is: " + str(fitparams['merit']) + " and the fit for " + str(fitparams['dof']) + " dof is " + str(fitparams['merit']/fitparams['dof']) + ".")
+
+
+        if functype in ['p', 'post', 'posterior']:
+            fitparams['deviance'] = 2.0*func.loglikelihood(fitparams['popt'], neg=True)
+        elif functype in ['l', 'like', 'likelihood']:
+            fitparams['deviance'] = -2.0*func(fitparams['popt'])
 
         print("Fitting statistics: ")
         print(" -- number of frequencies: " + str(len(self.x)))
         print(" -- Deviance [-2 log L] D = " + str(fitparams['deviance']))
-        print(" -- Highest data/model outlier(s) 2I/S = " + str(fitparams['maxpow']))
-        print("    at frequency(ies) f_max = " + str(fitparams['maxfreq']))
-        print(" -- Summed Residuals S = " + str(fitparams['sobs']))
-        print(" -- Expected S ~ " + str(fitparams['sexp']) + " +- " + str(fitparams['ssd']))
-        print(" -- KS test p-value (use with caution!) p = " + str(fitparams['ksp']))
-        print(" -- merit function (SSE) M = " + str(fitparams['merit']))
-
-
+        #print(" -- Highest data/model outlier(s) 2I/S = " + str(fitparams['maxpow']))
+        #print("    at frequency(ies) f_max = " + str(fitparams['maxfreq']))
+        #print(" -- Summed Residuals S = " + str(fitparams['sobs']))
+        #print(" -- Expected S ~ " + str(fitparams['sexp']) + " +- " + str(fitparams['ssd']))
+        #print(" -- KS test p-value (use with caution!) p = " + str(fitparams['ksp']))
+        #print(" -- merit function (SSE) M = " + str(fitparams['merit']))
 
         return fitparams
 
@@ -776,7 +780,10 @@ class MaxLikelihood(object):
         fitparams['bic'] = fitparams['result'] + len(ain)*len(self.x)
  
         ### compute deviance
-        fitparams['deviance'] = 2.0*optfunc.loglikelihood(fitparams['popt'])
+        try:
+            fitparams['deviance'] = 2.0*optfunc.loglikelihood(fitparams['popt'], neg=True)
+        except AttributeError:
+            fitparams['deviance'] = 2.0*optfunc(fitparams['popt'])
 
         fitparams['sexp'] = 2.0*len(self.x)*len(fitparams['popt'])
         fitparams['ssd'] = np.sqrt(2.0*fitparams['sexp'])
