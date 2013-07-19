@@ -152,5 +152,161 @@ class MarkovChainMonteCarlo(object):
 
         return ci0, ci1
 
+    def check_convergence(self, mcall, namestr, printobj=None, use_emcee = True):
+
+
+        if printobj:
+            print = printobj
+        else:
+            from __builtin__ import print as print
+
+        ### compute Rhat for all parameters
+        rh = self._rhat(mcall, printobj)
+        self.rhat = rh
+
+        plt.scatter(rh, np.arange(len(rh))+1.0 )
+        plt.axis([0.1,2,0.5,0.5+len(rh)])
+        plt.xlabel("R_hat")
+        plt.ylabel("Parameter")
+        plt.title('Rhat')
+        plt.savefig(namestr + '_rhat.ps')
+        plt.close()
+
+
+        ### compute 80% quantiles
+        ci0, ci1 = self._quantiles(mcall)
+
+
+        ### set array with colours
+        ### make sure there are enough colours available
+        colours_basic = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
+        cneeded = int(math.ceil(len(ci0[0])/7.0))
+        colours = []
+        for x in range(cneeded):
+            colours.extend(colours_basic)
+
+        ### plot 80% quantiles        if self.plot:
+            plt.plot(0,0)            plt.axis([-2, 2, 0.5, 0.5+len(ci0)])
+            for j in range(self.nchain):
+                plt.hlines(y=[m+(j)/(4.0*self.nchain) for m in range(len(ci0))], xmin=[x[j] for x in ci0], xmax=[x[j] for x in ci1], colo
+r=colours[j])
+            #plt.hlines(y=[m+1.0+(1)/(4*self.nchain) for m in np.arange(len(ci0))], xmin=[x[1] for x in ci0], xmax=[x[1] for x in ci1], c
+olor=colours[j])
+
+            plt.xlabel("80% region (scaled)")
+            plt.ylabel("Parameter")
+            plt.title("80% quantiles")
+            plt.savefig(namestr + "_quantiles.ps")
+            plt.close()
+
+    def mcmc_infer(self, namestr='test', printobj = None):
+
+        if printobj:
+            print = printobj
+        else:
+            from __builtin__ import print as print
+
+
+        ### covariance of the parameters from simulations
+        covsim = np.cov(self.mcall)
+
+        print("Covariance matrix (after simulations): \n")
+        print(str(covsim))
+
+        ### calculate for each parameter its (posterior) mean and equal tail
+        ### 90% (credible) interval from the MCMC
+
+        self.mean = map(lambda y: np.mean(y), self.mcall)
+        self.std = map(lambda y: np.std(y), self.mcall)
+        self.ci = map(lambda y: quantiles(y, prob=[0.05, 0.95]), self.mcall)
+
+
+        ### print to screen
+        print("-- Posterior Summary of Parameters: \n")
+        print("parameter \t mean \t\t sd \t\t 5% \t\t 95% \n")
+        print("---------------------------------------------\n")
+        for i in range(len(self.topt)):
+            print("theta[" + str(i) + "] \t " + str(self.mean[i]) + "\t" + str(self.std[i]) + "\t" + str(self.ci[i][0]) + "\t" + str(self.ci[i][1]) + "\n" )
+
+        #np.random.shuffle(self.mcall)
+
+        ### produce matrix scatter plots
+
+        ### number of parameters
+        N = len(self.topt)
+        print("N: " + str(N))
+        n, bins, patches = [], [], []
+
+        if self.plot:
+            fig = plt.figure(figsize=(15,15))
+            plt.subplots_adjust(top=0.925, bottom=0.025, left=0.025, right=0.975, wspace=0.2, hspace=0.2)
+            for i in range(N):
+                for j in range(N):
+                    xmin, xmax = self.mcall[j][:1000].min(), self.mcall[j][:1000].max()
+                    ymin, ymax = self.mcall[i][:1000].min(), self.mcall[i][:1000].max()
+                    ax = fig.add_subplot(N,N,i*N+j+1)
+                    #ax.axis([xmin, xmax, ymin, ymax])
+                    ax.xaxis.set_major_locator(MaxNLocator(5))
+                    ax.ticklabel_format(style="sci", scilimits=(-2,2))
+
+                    #print('parameter ' + str(i) + ' : ' + str(self.topt[i]))
+
+                    if i == j:
+                        #pass
+                        ntemp, binstemp, patchestemp = ax.hist(self.mcall[i][:1000], 30, normed=True, histtype='stepfilled')
+                        n.append(ntemp)
+                        bins.append(binstemp)
+                        patches.append(patchestemp)
+                        ax.axis([ymin, ymax, 0, max(ntemp)*1.2])
+#                       ax.axis([xmin, xmax, 0, max(ntemp)*1.2])
+
+                    else:
+                        #ax = fig.add_subplot(N,N,i*N+j+1)
+
+#                        ax.axis([xmin, xmax, ymin, ymax])
+
+                        ax.axis([xmin, xmax, ymin, ymax])
+                   #     np.random.shuffle(self.mcall)
+
+                        ### make a scatter plot first
+                        ax.scatter(self.mcall[j][:1000], self.mcall[i][:1000], s=7)
+                        ### then add contours
+
+#                        np.random.shuffle(self.mcall)
+
+                        xmin, xmax = self.mcall[j][:1000].min(), self.mcall[j][:1000].max()
+                        ymin, ymax = self.mcall[i][:1000].min(), self.mcall[i][:1000].max()
+
+
+                        ### Perform Kernel density estimate on data
+                        try:
+                            X,Y = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
+                            positions = np.vstack([X.ravel(), Y.ravel()])
+                            values = np.vstack([self.mcall[j][:1000], self.mcall[i][:1000]])
+                            kernel = scipy.stats.gaussian_kde(values)
+                            Z = np.reshape(kernel(positions).T, X.shape)
+
+                            ax.contour(X,Y,Z,7)
+                        except ValueError:
+                            print("Not making contours.")
+
+#        for i in range(N):
+#            for j in range(N):
+#                plt.subplot(N,N,i*N+j+1)
+#                ax.xaxis.set_major_locator(MaxNLocator(5))
+#                if i == j:
+#                    plt.axis([min(bins[i]), max(bins[i]), 0.0, max(n[i]*1.2)])
+#                    ax.xaxis.set_major_locator(MaxNLocator(5))
+#                else:
+#                    plt.axis([min(bins[j]), max(bins[j]), min(bins[i]), max(bins[i])])
+#                    ax.xaxis.set_major_locator(MaxNLocator(4))
+
+
+
+            plt.savefig(namestr + "_scatter.png", format='png')
+            plt.close()
+        return
+
+
 
 
