@@ -79,7 +79,7 @@ class MarkovChainMonteCarlo(object):
         rh = []
 
         ### loop over parameters ###
-        for i,k in enumerate(self.topt):
+        for i,k in enumerate(self.popt):
 
             ### pick parameter out of array
             tpar = np.array([t[i] for t in mcall])
@@ -123,7 +123,7 @@ class MarkovChainMonteCarlo(object):
         ci0, ci1 = [], []
 
         ### loop over the parameters ###
-        for i,k in enumerate(self.topt):
+        for i,k in enumerate(self.popt):
 
             print("I am on parameter: " + str(i))
 
@@ -228,15 +228,15 @@ olor=colours[j])
         print("-- Posterior Summary of Parameters: \n")
         print("parameter \t mean \t\t sd \t\t 5% \t\t 95% \n")
         print("---------------------------------------------\n")
-        for i in range(len(self.topt)):
-            print("theta[" + str(i) + "] \t " + str(self.mean[i]) + "\t" + str(self.std[i]) + "\t" + str(self.ci[i][0]) + "\t" + str(self.ci[i][1]) + "\n" )
+        for i in range(len(self.popt)):
+            print("chain[" + str(i) + "] \t " + str(self.mean[i]) + "\t" + str(self.std[i]) + "\t" + str(self.ci[i][0]) + "\t" + str(self.ci[i][1]) + "\n" )
 
         #np.random.shuffle(self.mcall)
 
         ### produce matrix scatter plots
 
         ### number of parameters
-        N = len(self.topt)
+        N = len(self.popt)
         print("N: " + str(N))
         n, bins, patches = [], [], []
 
@@ -252,7 +252,7 @@ olor=colours[j])
                     ax.xaxis.set_major_locator(MaxNLocator(5))
                     ax.ticklabel_format(style="sci", scilimits=(-2,2))
 
-                    #print('parameter ' + str(i) + ' : ' + str(self.topt[i]))
+                    #print('parameter ' + str(i) + ' : ' + str(self.popt[i]))
 
                     if i == j:
                         #pass
@@ -354,24 +354,14 @@ def MetropolisHastings(MarkovChainMonteCarlo, object):
             self.cov = cov
 
  
-        p0 = [self.pdist(self.popt,self.tcov) for i in xrange(nchain)]
+        p0 = [self.pdist(self.popt,self.pcov) for i in xrange(nchain)]
 
         allsamplers = []
 
         for nc in xrange(nchain):
-            if self.emcee:
 
-                 sampler = emcee.MHSampler(self.tcov, dim=ndim, lpostfn=lpost, args=[False])
-                 pos, prob, state = sampler.run_mcmc(p0[nc], self.burnin)
-                 sampler.reset()
-
-                 sampler.run_mcmc(pos, niter, rstate0=state)
-
-                 allsamplers.append(sampler)
-
-            else:
-
-
+           sampler = MHChain(self.popt, self.cov, self.niter, burnin=self.burnin, pdist="mvn", emcee=True)
+           sampler.run_chain(t0=p0[nc])
 
 ## need to define MarkovChain object here, so I can run several of them :)
 
@@ -408,7 +398,74 @@ class MarkovChain(object):
             self.burnin = burnin
             self.allsamples = burnin + niter
 
-    def run_chain(self, niter = None, burnin = None):
+
+    def run_diagnostics(self, namestr=None, paraname=None, printobj = None):
+
+        if printobj:
+            print = printobj
+        else:
+            from __builtin__ import print as print
+
+        print("Markov Chain acceptance rate: " + str(self.accept) +".")
+
+        if namestr == None:
+            print("No file name string given for printing. Setting to 'test' ...")
+            namestr = 'test'
+
+        if paraname == None:
+           paraname = ['alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta', 'eta', 'iota', 'lappa', 'lambda', 'mu']
+
+
+        fig = plt.figure(figsize=(12,10))
+        adj =plt.subplots_adjust(hspace=0.4, wspace=0.4)
+
+        for i,th in enumerate(self.chain[0]):
+            #print "i: " + str(i)
+            ts = np.array([t[i] for t in self.chain])
+  
+            #print "(i*3)+1: " + str((i*3)+1)
+            ### plotting time series ###
+            p1 = plt.subplot(len(self.popt), 3, (i*3)+1)
+            p1 = plt.plot(ts)
+            plt.axis([0, len(ts), min(ts), max(ts)])
+            plt.xlabel("Number of draws")
+            plt.ylabel("parameter value")
+            plt.title("Time series for parameter " + str(paraname[i]) + ".")
+
+            ### make a normal distribution to compare to
+            #tsnorm = [np.random.normal(self.pcov[i], self.terr[i]) for x in range(len(ts)) ]
+
+            p2 = plt.subplot(len(self.popt), 3, (i*3)+2)
+
+            ### plotting histogram
+            p2 = count, bins, ignored = plt.hist(ts, bins=10, normed=True)
+            bnew = np.arange(bins[0], bins[-1], (bins[-1]-bins[0])/100.0)
+            p2 = plt.plot(bnew, 1.0/(self.terr[i]*np.sqrt(2*np.pi))*np.exp(-(bnew - self.popt[i])**2.0/(2.0*self.terr[i]**2.0)), linewidth=2, color='r')
+            plt.xlabel('value of ' + str(paraname[i]))
+            plt.ylabel('probability')
+            plt.title("Histogram for parameter " + str(paraname[i]) + ".")
+
+
+            nlags = 30
+
+            p3 = plt.subplot(len(self.popt), 3, (i*3)+3)
+            acorr = gt.autocorr(ts,nlags=nlags, norm=True)
+            p3 = plt.vlines(range(nlags), np.zeros(nlags), acorr, colors='black', linestyles='solid')
+            plt.axis([0.0, nlags, 0.0, 1.0])
+        #plt.show()
+        plt.savefig(namestr  + "_diag.png", format='png',orientation='landscape')
+        plt.close()
+        return
+
+
+class MHChain(MarkovChain, object):
+
+    def __init__(self, popt, pcov, niter, burnin=0.5, pdist="mvn", emcee=True):
+        self.emcee = emcee
+        MarkovChain.__init__(popt, pcov, niter, burnin, pdist)
+
+
+    def run_chain(self, t0=None, niter = None, burnin = None):
 
         if not niter == None:
             self.niter = niter
@@ -421,33 +478,49 @@ class MarkovChain(object):
                 self.allsamples = burnin + self.niter
 
 
+
+        if self.emcee:
+
+            sampler = emcee.MHSampler(self.pcov, dim=ndim, lpostfn=lpost, args=[False])
+            pos, prob, state = sampler.run_mcmc(p0[nc], self.burnin)
+            sampler.reset()
+ 
+            sampler.run_mcmc(pos, niter, rstate0=state)
+ 
+            self.chain = sampler.chain
+            self.lnprobability = sampler.lnprobability
+
+
+        else:
+
+
             ### set up array
             ttemp, logp = [], []
             ttemp.append(self.t0)
             #lpost = posterior.PerPosterior(self.ps, self.func)
             logp.append(self.lpost(self.t0, neg=False))
-
-            #print "self.topt: " + str(self.t0)
-            #print "self.tcov: " + str(self.tcov)
-
+     
+            #print "self.popt: " + str(self.t0)
+            #print "self.pcov: " + str(self.pcov)
+     
             #print("np.arange(self.niter-1)+1" +  str(np.arange(self.niter-1)+1))
-            for t in np.arange(self.niter-1)+1:
-#               print("cov: " + str(self.tcov))
-
-                tprop = dist(ttemp[t-1], self.tcov)
-#               print("tprop: " + str(tprop))
-
+            for t in np.arange(self.allsamples-1)+1:
+                print("cov: " + str(self.pcov))
+     
+                tprop = dist(ttemp[t-1], self.pcov)
+                print("tprop: " + str(tprop))
+     
                 pprop = self.lpost(tprop)#, neg=False)
                 #pprop = lpost(tprop, self.func, ps)
-#               print("pprop: " + str(pprop))
-
+                print("pprop: " + str(pprop))
+     
                 #logr = logp[t-1] - pprop
                 logr = pprop - logp[t-1]
                 logr = min(logr, 0.0)
                 r= np.exp(logr)
                 update = choice([True, False], size=1, weights=[r, 1.0-r])
-#               print("update: " + str(update))
-
+                print("update: " + str(update))
+     
                 if update:
                     ttemp.append(tprop)
                     logp.append(pprop)
@@ -456,11 +529,11 @@ class MarkovChain(object):
                 else:
                     ttemp.append(ttemp[t-1])
                     logp.append(logp[t-1])
-
-            self.theta = ttemp[self.discard+1:]
-            self.logp = logp[self.discard+1:]
-
-
+     
+            self.chain = ttemp[self.burnin+1:]
+            self.lnprobability = logp[self.burnin+1:]
+ 
+        return 
 
 
 
