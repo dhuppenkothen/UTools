@@ -14,11 +14,12 @@ import math
 
 import generaltools as gt
 import posterior
-
+import powerspectrum
+import mle
 
 class MarkovChainMonteCarlo(object):
 
-    def __init__(self, x, y, lpost, logfile='test', namestr='test', datatype=None):
+    def __init__(self, x, y, lpost, namestr='test', datatype=None):
 
         ## dependent and independent variable
         self.x = x
@@ -32,7 +33,7 @@ class MarkovChainMonteCarlo(object):
         self.lpost = lpost
 
         ## write out messages and results in this logfile:
-        self.logfile = gt.TwoPrint(test + '.dat')
+        self.logfile = gt.TwoPrint(namestr + '_logfile.dat')
 
         ## string to use for filenames
         self.namestr = namestr
@@ -51,7 +52,8 @@ class MarkovChainMonteCarlo(object):
             ps.nphots = ps.ps[0]
             ps.df = ps.freq[1] - ps.freq[0] 
             fitspec = mle.PerMaxLike(ps, fitmethod=fitmethod, obs=obs)
-            self.fitparams = fitspec.mlest(self.lpost, ain, bounds=bounts)
+            print("ain: " + str(ain))
+            self.fitparams = fitspec.mlest(self.lpost, ain, bounds=bounds)
 
         elif self.datatype in ['gauss', 'gp', 'gaussproc', 'gaussian process']:
             fitspec = mle.GaussMaxLike(self.x, self.y, obs=obs, fitmethod=fitmethod)
@@ -182,13 +184,12 @@ class MarkovChainMonteCarlo(object):
             colours.extend(colours_basic)
 
         ### plot 80% quantiles        if self.plot:
-            plt.plot(0,0)            plt.axis([-2, 2, 0.5, 0.5+len(ci0)])
+            plt.plot(0,0)
+            plt.axis([-2, 2, 0.5, 0.5+len(ci0)])
             for j in range(self.nchain):
-                plt.hlines(y=[m+(j)/(4.0*self.nchain) for m in range(len(ci0))], xmin=[x[j] for x in ci0], xmax=[x[j] for x in ci1], colo
-r=colours[j])
-            #plt.hlines(y=[m+1.0+(1)/(4*self.nchain) for m in np.arange(len(ci0))], xmin=[x[1] for x in ci0], xmax=[x[1] for x in ci1], c
-olor=colours[j])
-
+                plt.hlines(y=[m+(j)/(4.0*self.nchain) for m in range(len(ci0))], xmin=[x[j] for x in ci0], xmax=[x[j] for x in ci1], color=colours[j])
+            #plt.hlines(y=[m+1.0+(1)/(4*self.nchain) for m in np.arange(len(ci0))], xmin=[x[1] for x in ci0], xmax=[x[1] for x in ci1], color=colours[j])
+ 
             plt.xlabel("80% region (scaled)")
             plt.ylabel("Parameter")
             plt.title("80% quantiles")
@@ -306,9 +307,9 @@ olor=colours[j])
 
 
 
-def MetropolisHastings(MarkovChainMonteCarlo, object):
+class MetropolisHastings(MarkovChainMonteCarlo, object):
 
-    def __init__(self, x, y, lpost, logfile='test', datatype=None, emcee=True, pdist='mvn'):
+    def __init__(self, x, y, lpost, namestr='test', datatype=None, emcee=True, pdist='mvn'):
 
         ## use emcee?
         self.emcee = emcee
@@ -317,15 +318,15 @@ def MetropolisHastings(MarkovChainMonteCarlo, object):
         ## in theory, one could define a whole range of proposal distributions to be used
         ## at the moment, only a multivariate normal works, but should be easy to extend
         if pdist.lower() in ['mvn', 'multivariate normal', 'normal', 'gaussian']:
-             self.pdist = np.random.mutlivariate_normal
+             self.pdist = np.random.multivariate_normal
         else:
              raise Exception('Proposal distribution not recognized!')
 
-        MarkovChainMonteCarlo.__init__(x, y, lpost, logfile=logfile, datatype=datatype)
+        MarkovChainMonteCarlo.__init__(self,x, y, lpost, namestr=namestr, datatype=datatype)
         return
 
 
-    def run_mcmc(self, popt=None, cov=None, nchain=200, niter=100, burnin=100, a=2.0, namestr='test')
+    def run_mcmc(self, popt=None, cov=None, nchain=200, niter=100, burnin=100, a=2.0):
 
 
         ## if parameter burnin is smaller than one, interpret it as a fraction of niter
@@ -356,7 +357,7 @@ def MetropolisHastings(MarkovChainMonteCarlo, object):
            sampler = MHChain(self.popt, self.cov, self.niter, burnin=self.burnin, pdist=self.pdist, emcee=self.emcee)
            sampler.run_chain(t0=p0[nc])
 
-           sampler.run_diagnostics(namestr=namestr+'_chain'+str(nc)+".dat")
+           sampler.run_diagnostics(namestr=self.namestr+'_chain'+str(nc))
            allsamplers.append(sampler)
 
 
@@ -469,7 +470,7 @@ class MHChain(MarkovChain, object):
 
     def __init__(self, popt, pcov, niter, burnin=0.5, pdist="mvn", emcee=True):
         self.emcee = emcee
-        MarkovChain.__init__(popt, pcov, niter, burnin, pdist)
+        MarkovChain.__init__(self, popt, pcov, niter, burnin, pdist)
 
 
     def run_chain(self, t0=None, niter = None, burnin = None):
