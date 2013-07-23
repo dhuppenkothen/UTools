@@ -315,15 +315,32 @@ olor=colours[j])
 
 def MetropolisHastings(MarkovChainMonteCarlo, object):
 
-    def __init__(self, x, y, lpost, logfile='test', datatype=None, emcee=True):
+    def __init__(self, x, y, lpost, logfile='test', datatype=None, emcee=True, pdist='mvn'):
 
+        ## use emcee?
         self.emcee = emcee
+
+
+        ## in theory, one could define a whole range of proposal distributions to be used
+        ## at the moment, only a multivariate normal works, but should be easy to extend
+        if pdist.lower() in ['mvn', 'multivariate normal', 'normal', 'gaussian']:
+             self.pdist = np.random.mutlivariate_normal
+        else:
+             raise Exception('Proposal distribution not recognized!')
 
         MarkovChainMonteCarlo.__init__(x, y, lpost, logfile=logfile, datatype=datatype)
         return
 
 
-    def run_mcmc(self, popt=None, cov=None, nchain=200, niter=100, burnin=100)
+    def run_mcmc(self, popt=None, cov=None, nchain=200, niter=100, burnin=100, a=2.0)
+
+
+        ## if parameter burnin is smaller than one, interpret it as a fraction of niter
+        if burnin < 1.0:
+            self.burnin = burnin*niter
+        ## else assume it's the actual number of samples to be thrown away
+        else:
+            self.burnin = burnin
 
         if not popt and not cov:
             try:
@@ -336,8 +353,114 @@ def MetropolisHastings(MarkovChainMonteCarlo, object):
             self.popt = popt
             self.cov = cov
 
+ 
+        p0 = [self.pdist(self.popt,self.tcov) for i in xrange(nchain)]
+
+        allsamplers = []
+
         for nc in xrange(nchain):
             if self.emcee:
 
+                 sampler = emcee.MHSampler(self.tcov, dim=ndim, lpostfn=lpost, args=[False])
+                 pos, prob, state = sampler.run_mcmc(p0[nc], self.burnin)
+                 sampler.reset()
+
+                 sampler.run_mcmc(pos, niter, rstate0=state)
+
+                 allsamplers.append(sampler)
+
+            else:
+
+
+
 ## need to define MarkovChain object here, so I can run several of them :)
+
+
+
+
+
+
+
+
+
+###############################
+###############################
+###############################
+
+
+
+class MarkovChain(object):
+
+    def __init__(self, popt, pcov, niter, burnin=0.5, pdist='mvn'): 
+
+        if pdist.lower() in ['mvn', 'multivariate normal', 'normal', 'gaussian']:
+             self.pdist = np.random.multivariate_normal
+
+        self.popt = popt
+        self.pcov = pcov
+
+        self.niter = niter
+
+        if burnin < 1.0:
+            self.burnin = burnin*niter
+            self.allsamples = niter
+        else:
+            self.burnin = burnin
+            self.allsamples = burnin + niter
+
+    def run_chain(self, niter = None, burnin = None):
+
+        if not niter == None:
+            self.niter = niter
+        if not burnin == None: 
+            if burnin < 1.0:
+                self.burnin = burnin*niter
+                self.allsamples = self.niter
+            else:
+                self.burnin = burnin
+                self.allsamples = burnin + self.niter
+
+
+            ### set up array
+            ttemp, logp = [], []
+            ttemp.append(self.t0)
+            #lpost = posterior.PerPosterior(self.ps, self.func)
+            logp.append(self.lpost(self.t0, neg=False))
+
+            #print "self.topt: " + str(self.t0)
+            #print "self.tcov: " + str(self.tcov)
+
+            #print("np.arange(self.niter-1)+1" +  str(np.arange(self.niter-1)+1))
+            for t in np.arange(self.niter-1)+1:
+#               print("cov: " + str(self.tcov))
+
+                tprop = dist(ttemp[t-1], self.tcov)
+#               print("tprop: " + str(tprop))
+
+                pprop = self.lpost(tprop)#, neg=False)
+                #pprop = lpost(tprop, self.func, ps)
+#               print("pprop: " + str(pprop))
+
+                #logr = logp[t-1] - pprop
+                logr = pprop - logp[t-1]
+                logr = min(logr, 0.0)
+                r= np.exp(logr)
+                update = choice([True, False], size=1, weights=[r, 1.0-r])
+#               print("update: " + str(update))
+
+                if update:
+                    ttemp.append(tprop)
+                    logp.append(pprop)
+                    if t > self.discard:
+                        accept = accept + 1
+                else:
+                    ttemp.append(ttemp[t-1])
+                    logp.append(logp[t-1])
+
+            self.theta = ttemp[self.discard+1:]
+            self.logp = logp[self.discard+1:]
+
+
+
+
 
