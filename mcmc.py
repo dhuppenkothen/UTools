@@ -332,7 +332,7 @@ def MetropolisHastings(MarkovChainMonteCarlo, object):
         return
 
 
-    def run_mcmc(self, popt=None, cov=None, nchain=200, niter=100, burnin=100, a=2.0)
+    def run_mcmc(self, popt=None, cov=None, nchain=200, niter=100, burnin=100, a=2.0, namestr='test')
 
 
         ## if parameter burnin is smaller than one, interpret it as a fraction of niter
@@ -360,10 +360,24 @@ def MetropolisHastings(MarkovChainMonteCarlo, object):
 
         for nc in xrange(nchain):
 
-           sampler = MHChain(self.popt, self.cov, self.niter, burnin=self.burnin, pdist="mvn", emcee=True)
+           sampler = MHChain(self.popt, self.cov, self.niter, burnin=self.burnin, pdist=self.pdist, emcee=self.emcee)
            sampler.run_chain(t0=p0[nc])
 
-## need to define MarkovChain object here, so I can run several of them :)
+           sampler.run_diagnostics(namestr=namestr+'_chain'+str(nc)+".dat")
+           allsamplers.append(sampler)
+
+
+        self.chain = [a.chain for a in allsamplers]
+        flatchain()
+
+    def flatchain(self):
+
+        self.flatchain = list(self.chain[0])
+        for c in self.chain[1:]:
+            self.flatchain.extend(c)
+
+        return
+
 
 
 
