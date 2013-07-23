@@ -18,7 +18,7 @@ import posterior
 
 class MarkovChainMonteCarlo(object):
 
-    def __init__(self, x, y, lpost, logfile='test', datatype=None):
+    def __init__(self, x, y, lpost, logfile='test', namestr='test', datatype=None):
 
         ## dependent and independent variable
         self.x = x
@@ -34,6 +34,9 @@ class MarkovChainMonteCarlo(object):
         ## write out messages and results in this logfile:
         self.logfile = gt.TwoPrint(test + '.dat')
 
+        ## string to use for filenames
+        self.namestr = namestr
+ 
         return
 
 
@@ -66,15 +69,10 @@ class MarkovChainMonteCarlo(object):
 
     ### auxiliary function used in check_convergence
     ### computes R_hat, which compares the variance inside chains to the variances between chains
-    def _rhat(self, mcall, printobj = None):
+    def _rhat(self):
 
 
-        if printobj:
-            print = printobj
-        else:
-            from __builtin__ import print as print
-
-        print("Computing Rhat. The closer to 1, the better!")
+        self.logfile("Computing Rhat. The closer to 1, the better!")
 
         rh = []
 
@@ -82,7 +80,7 @@ class MarkovChainMonteCarlo(object):
         for i,k in enumerate(self.popt):
 
             ### pick parameter out of array
-            tpar = np.array([t[i] for t in mcall])
+            tpar = np.array([t[i] for t in self.flatchain])
 
             ### reshape back into array of niter*nchain dimensions
             tpar = np.reshape(tpar, (self.nchain, len(tpar)/self.nchain))
@@ -106,18 +104,18 @@ class MarkovChainMonteCarlo(object):
             rh.append(np.sqrt(mpv/W))
 
             ### print convergence message on screen:
-            print("The Rhat value for parameter " + str(i) + " is: " + str(rh[i]) + ".")
+            self.logfile("The Rhat value for parameter " + str(i) + " is: " + str(rh[i]) + ".")
 
             if rh[i] > 1.2:
-                print("*** HIGH Rhat! Check results! ***")
+                self.logfile("*** HIGH Rhat! Check results! ***")
             else:
-                print("Good Rhat. Hoorah!")
+                self.logfile("Good Rhat. Hoorah!")
 
 
         return rh
 
 
-    def _quantiles(self, mcall):
+    def _quantiles(self):
 
         ### empty lists for quantiles
         ci0, ci1 = [], []
@@ -128,7 +126,7 @@ class MarkovChainMonteCarlo(object):
             print("I am on parameter: " + str(i))
 
             ### pick parameter out of array
-            tpar = np.array([t[i] for t in mcall])
+            tpar = np.array([t[i] for t in self.flatchain])
             ### reshape back into array of niter*nchain dimensions
             tpar = np.reshape(tpar, (self.nchain, len(tpar)/self.nchain))
 
@@ -155,16 +153,11 @@ class MarkovChainMonteCarlo(object):
 
         return ci0, ci1
 
-    def check_convergence(self, mcall, namestr, printobj=None, use_emcee = True):
+    def check_convergence(self):
 
-
-        if printobj:
-            print = printobj
-        else:
-            from __builtin__ import print as print
 
         ### compute Rhat for all parameters
-        rh = self._rhat(mcall, printobj)
+        rh = self._rhat()
         self.rhat = rh
 
         plt.scatter(rh, np.arange(len(rh))+1.0 )
@@ -172,12 +165,12 @@ class MarkovChainMonteCarlo(object):
         plt.xlabel("R_hat")
         plt.ylabel("Parameter")
         plt.title('Rhat')
-        plt.savefig(namestr + '_rhat.ps')
+        plt.savefig(self.namestr + '_rhat.ps')
         plt.close()
 
 
         ### compute 80% quantiles
-        ci0, ci1 = self._quantiles(mcall)
+        ci0, ci1 = self._quantiles()
 
 
         ### set array with colours
@@ -199,10 +192,10 @@ olor=colours[j])
             plt.xlabel("80% region (scaled)")
             plt.ylabel("Parameter")
             plt.title("80% quantiles")
-            plt.savefig(namestr + "_quantiles.ps")
+            plt.savefig(self.namestr + "_quantiles.ps")
             plt.close()
 
-    def mcmc_infer(self, namestr='test', printobj = None):
+    def mcmc_infer(self):
 
         if printobj:
             print = printobj
@@ -211,7 +204,7 @@ olor=colours[j])
 
 
         ### covariance of the parameters from simulations
-        covsim = np.cov(self.mcall)
+        covsim = np.cov(self.flatchain)
 
         print("Covariance matrix (after simulations): \n")
         print(str(covsim))
@@ -219,9 +212,9 @@ olor=colours[j])
         ### calculate for each parameter its (posterior) mean and equal tail
         ### 90% (credible) interval from the MCMC
 
-        self.mean = map(lambda y: np.mean(y), self.mcall)
-        self.std = map(lambda y: np.std(y), self.mcall)
-        self.ci = map(lambda y: quantiles(y, prob=[0.05, 0.95]), self.mcall)
+        self.mean = map(lambda y: np.mean(y), self.flatchain)
+        self.std = map(lambda y: np.std(y), self.flatchain)
+        self.ci = map(lambda y: quantiles(y, prob=[0.05, 0.95]), self.flatchain)
 
 
         ### print to screen
@@ -245,8 +238,8 @@ olor=colours[j])
             plt.subplots_adjust(top=0.925, bottom=0.025, left=0.025, right=0.975, wspace=0.2, hspace=0.2)
             for i in range(N):
                 for j in range(N):
-                    xmin, xmax = self.mcall[j][:1000].min(), self.mcall[j][:1000].max()
-                    ymin, ymax = self.mcall[i][:1000].min(), self.mcall[i][:1000].max()
+                    xmin, xmax = self.flatchain[j][:1000].min(), self.flatchain[j][:1000].max()
+                    ymin, ymax = self.flatchain[i][:1000].min(), self.flatchain[i][:1000].max()
                     ax = fig.add_subplot(N,N,i*N+j+1)
                     #ax.axis([xmin, xmax, ymin, ymax])
                     ax.xaxis.set_major_locator(MaxNLocator(5))
@@ -256,7 +249,7 @@ olor=colours[j])
 
                     if i == j:
                         #pass
-                        ntemp, binstemp, patchestemp = ax.hist(self.mcall[i][:1000], 30, normed=True, histtype='stepfilled')
+                        ntemp, binstemp, patchestemp = ax.hist(self.flatchain[i][:1000], 30, normed=True, histtype='stepfilled')
                         n.append(ntemp)
                         bins.append(binstemp)
                         patches.append(patchestemp)
@@ -272,20 +265,20 @@ olor=colours[j])
                    #     np.random.shuffle(self.mcall)
 
                         ### make a scatter plot first
-                        ax.scatter(self.mcall[j][:1000], self.mcall[i][:1000], s=7)
+                        ax.scatter(self.flatchain[j][:1000], self.flatchain[i][:1000], s=7)
                         ### then add contours
 
 #                        np.random.shuffle(self.mcall)
 
-                        xmin, xmax = self.mcall[j][:1000].min(), self.mcall[j][:1000].max()
-                        ymin, ymax = self.mcall[i][:1000].min(), self.mcall[i][:1000].max()
+                        xmin, xmax = self.flatchain[j][:1000].min(), self.flatchain[j][:1000].max()
+                        ymin, ymax = self.flatchain[i][:1000].min(), self.flatchain[i][:1000].max()
 
 
                         ### Perform Kernel density estimate on data
                         try:
                             X,Y = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
                             positions = np.vstack([X.ravel(), Y.ravel()])
-                            values = np.vstack([self.mcall[j][:1000], self.mcall[i][:1000]])
+                            values = np.vstack([self.flatchain[j][:1000], self.flatchain[i][:1000]])
                             kernel = scipy.stats.gaussian_kde(values)
                             Z = np.reshape(kernel(positions).T, X.shape)
 
@@ -306,7 +299,7 @@ olor=colours[j])
 
 
 
-            plt.savefig(namestr + "_scatter.png", format='png')
+            plt.savefig(self.namestr + "_scatter.png", format='png')
             plt.close()
         return
 
