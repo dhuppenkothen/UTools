@@ -10,7 +10,7 @@ import numpy as np
 import scipy.optimize
 import scipy.stats
 import math
-
+import emcee
 
 import generaltools as gt
 import posterior
@@ -65,6 +65,13 @@ class MarkovChainMonteCarlo(object):
             self.fitparams = fitspec.mlest(self.lpost.func, ain, bounds=bounds)
 
         elif self.datatype in ['gauss', 'gp', 'gaussproc', 'gaussian process']:
+ 
+            try:
+                kwargs['func'] 
+                func = kwargs['func']
+            except KeyError:
+                func = None
+
             fitspec = mle.GaussMaxLike(self.x, self.y, obs=obs, fitmethod=fitmethod)
             self.fitparams = fitspec.mlest(self.lpost, ain, func=kwargs['func'], obs=obs, bounds=bounds)
 
@@ -366,17 +373,25 @@ class MetropolisHastings(MarkovChainMonteCarlo, object):
 
         for nc in xrange(nchain):
 
-           sampler = MHChain(self.lpost, self.popt, self.cov, self.niter, burnin=self.burnin, pdist=self.pdist, emcee=self.emcee)
+           sampler = MHChain(self.lpost, 
+                             self.popt, 
+                             self.cov, 
+                             self.niter, 
+                             burnin=self.burnin, 
+                             pdist=self.pdist, 
+                             emcee=self.emcee, 
+                             namestr = self.namestr+'_chain'+str(nc) )
+
            sampler.run_chain(t0=p0[nc])
 
-           sampler.run_diagnostics(namestr=self.namestr+'_chain'+str(nc))
+           sampler.run_diagnostics()
            allsamplers.append(sampler)
 
 
         self.chain = [a.chain for a in allsamplers]
-        flatchain()
+        self._flatchain()
 
-    def flatchain(self):
+    def _flatchain(self):
 
         self.flatchain = list(self.chain[0])
         for c in self.chain[1:]:
@@ -401,7 +416,7 @@ class MetropolisHastings(MarkovChainMonteCarlo, object):
 
 class MarkovChain(object):
 
-    def __init__(self, lpost, popt, cov, niter, burnin=0.5, pdist=None): 
+    def __init__(self, lpost, popt, cov, niter, burnin=0.5, pdist=None, namestr='test'): 
 
         self.lpost = lpost
 
@@ -421,19 +436,23 @@ class MarkovChain(object):
             self.burnin = burnin
             self.allsamples = burnin + niter
 
+        self.logfile = gt.TwoPrint(namestr + '_logfile.dat')
+        self.namestr = namestr
+        return
 
-    def run_diagnostics(self, namestr=None, paraname=None, printobj = None):
 
-        if printobj:
-            print = printobj
-        else:
-            from __builtin__ import print as print
+    def run_diagnostics(self, paraname=None):
 
-        print("Markov Chain acceptance rate: " + str(self.accept) +".")
 
-        if namestr == None:
-            print("No file name string given for printing. Setting to 'test' ...")
-            namestr = 'test'
+        self.logfile("Number of accepted samples: " + str(self.accept) +".")
+        print("accept: " + str(self.accept) )
+        print("all samples: " + str(self.allsamples))
+	print("burnin: " + str(self.burnin))
+        self.logfile("Markov Chain Acceptance rate: " + str('%.2f' % (np.float(self.accept)/(np.float(self.allsamples) - np.float(self.burnin)))) + ".")
+
+        tcov = np.cov(self.chain)
+        self.terr = np.sqrt(np.diag(tcov))
+
 
         if paraname == None:
            paraname = ['alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta', 'eta', 'iota', 'lappa', 'lambda', 'mu']
@@ -443,10 +462,8 @@ class MarkovChain(object):
         adj =plt.subplots_adjust(hspace=0.4, wspace=0.4)
 
         for i,th in enumerate(self.chain[0]):
-            #print "i: " + str(i)
             ts = np.array([t[i] for t in self.chain])
   
-            #print "(i*3)+1: " + str((i*3)+1)
             ### plotting time series ###
             p1 = plt.subplot(len(self.popt), 3, (i*3)+1)
             p1 = plt.plot(ts)
@@ -476,17 +493,16 @@ class MarkovChain(object):
             p3 = plt.vlines(range(nlags), np.zeros(nlags), acorr, colors='black', linestyles='solid')
             plt.axis([0.0, nlags, 0.0, 1.0])
         #plt.show()
-        plt.savefig(namestr  + "_diag.png", format='png',orientation='landscape')
+        plt.savefig(self.namestr  + "_diag.png", format='png',orientation='landscape')
         plt.close()
         return
 
 
 class MHChain(MarkovChain, object):
 
-    def __init__(self, lpost, popt, cov, niter, burnin=0.5, pdist="mvn", emcee=True):
+    def __init__(self, lpost, popt, cov, niter, burnin=0.5, pdist="mvn", emcee=True, namestr='test'):
         self.emcee = emcee
-        print("pdist: " + str(pdist))
-        MarkovChain.__init__(self, lpost, popt, cov, niter, burnin, pdist)
+        MarkovChain.__init__(self, lpost, popt, cov, niter, burnin, pdist, namestr)
 
 
     def run_chain(self, t0=None, niter = None, burnin = None):
@@ -506,20 +522,23 @@ class MHChain(MarkovChain, object):
 
 
         if self.emcee:
-
-            sampler = emcee.MHSampler(self.cov, dim=ndim, lpostfn=lpost, args=[False])
-            pos, prob, state = sampler.run_mcmc(p0[nc], self.burnin)
+            ndim = len(t0)
+            print("ndim: " + str(ndim))
+            sampler = emcee.MHSampler(self.cov, dim=ndim, lnprobfn=self.lpost, args=[False])
+            pos, prob, state = sampler.run_mcmc(t0, self.burnin)
             sampler.reset()
+
  
-            sampler.run_mcmc(pos, niter, rstate0=state)
+            sampler.run_mcmc(pos, self.niter, rstate0=state)
  
             self.chain = sampler.chain
             self.lnprobability = sampler.lnprobability
+            self.accept = sampler.acceptance_fraction*self.niter
 
 
         else:
 
-
+            accept = 0
             ### set up array
             ttemp, logp = [], []
             ttemp.append(t0)
@@ -530,18 +549,17 @@ class MHChain(MarkovChain, object):
 
                 tprop = self.pdist(ttemp[t-1], self.cov)
      
-                pprop = self.lpost(tprop)#, neg=False)
+                pprop = self.lpost(tprop, neg=False)
      
                 logr = pprop - logp[t-1]
                 logr = min(logr, 0.0)
                 r= np.exp(logr)
                 update = choice([True, False], size=1, weights=[r, 1.0-r])
-                print("update: " + str(update))
      
                 if update:
                     ttemp.append(tprop)
                     logp.append(pprop)
-                    if t > self.discard:
+                    if t > self.burnin:
                         accept = accept + 1
                 else:
                     ttemp.append(ttemp[t-1])
@@ -549,7 +567,7 @@ class MHChain(MarkovChain, object):
      
             self.chain = ttemp[self.burnin+1:]
             self.lnprobability = logp[self.burnin+1:]
- 
+            self.accept = accept 
         return 
 
 
