@@ -3,6 +3,7 @@
 # AND ANAYLSIS
 #
 # last changed: 
+#  - July 24, 2013: added function choice_hack as a substitute for np.choice
 #  - March 24, 2012: Added documentation
 #  - October 24, 2011: worked out kinks in barycentering
 # 
@@ -162,6 +163,75 @@ def correlate(x, y, nlags=100, norm=True):
     else:
         rnew = r
     return rnew
+
+
+
+
+### Hack for Numpy Choice function ###
+#
+# Will be slow for large arrays.
+#
+#
+# Input: - data= list to pick from
+#        - weights = statistical weight of each element in data
+#          if no weights are given, all choices are equally likely
+#        - size = number of choices to generate (default: one)
+#
+# Output: - either single entry from data, chosen according to weights
+#         - or a list of choices 
+#
+# Note that unlike numpy.random.choice, this function has no "replace"
+# option! This means that elements picked from data will *always* be
+# replaced, i.e. can be picked again!
+#
+#
+def choice_hack(data, weights=None, size=None):
+
+
+
+    #print "len(data): " + str(len(data))
+    ### if no weights are given, all choices have equal probability
+    if weights == None:
+        weights = [1.0/float(len(data)) for x in range(len(data))]
+
+    #print("weights: " + str(weights))
+    #print "sum of Weights: " + str(sum(weights))
+    if not np.sum(weights) == 1.0:
+        if np.absolute(weights[0]) > 1.0e7 and sum(weights) == 0:
+            weights = [1.0/float(len(data)) for x in range(len(data))]
+        else:
+            raise Exception("Weights entered do not add up to 1! This must not happen!")
+
+
+    #print "Sum of weights: " + str(np.sum(weights))
+    ### Compute edges of each bin
+    edges = []
+    etemp = 0.0
+    for x,y in zip(data, weights):
+       etemp = etemp + y
+       edges.append(etemp)
+
+    ### if the np.sum of all weights does not add up to 1, raise an Exception
+
+
+    ### If no size given, just print one number
+    if size == None:
+        randno = np.random.rand()
+
+    ### Else make sure that size is an integer
+    ### and make a list of random numbers
+    try:
+        randno = [np.random.rand() for x in np.arange(size)]
+    except TypeError:
+        raise TypeError("size should be an integer!")
+
+    choice_index = np.array(edges).searchsorted(randno)
+    choice_data = np.array(data)[choice_index]
+
+    return choice_data
+
+##############################################################
+
 
 
 #### APPROXIMATE HESSIAN ######################################3
