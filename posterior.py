@@ -254,6 +254,8 @@ class PerPosterior(Posterior):
     ### minimizing -logL is the same as maximizing logL
     ### so it all works out okay
     def loglikelihood(self,t0, neg=False):
+        print("self.ps.freq: " + str(self.ps.freq))
+        print("t0: " + str(t0))
         funcval = self.func(self.ps.freq, *t0)
 
         res = np.sum(np.log(funcval))+ np.sum(self.ps.ps/funcval)

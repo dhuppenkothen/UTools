@@ -17,6 +17,15 @@ import posterior
 import powerspectrum
 import mle
 
+try:
+    from numpy.random import choice
+     ### if not, use hack
+except ImportError:
+    choice = gt.choice_hack
+
+
+
+
 class MarkovChainMonteCarlo(object):
 
     def __init__(self, x, y, lpost, namestr='test', datatype=None):
