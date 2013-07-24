@@ -53,7 +53,7 @@ class MarkovChainMonteCarlo(object):
             ps.df = ps.freq[1] - ps.freq[0] 
             fitspec = mle.PerMaxLike(ps, fitmethod=fitmethod, obs=obs)
             print("ain: " + str(ain))
-            self.fitparams = fitspec.mlest(self.lpost, ain, bounds=bounds)
+            self.fitparams = fitspec.mlest(self.lpost.func, ain, bounds=bounds)
 
         elif self.datatype in ['gauss', 'gp', 'gaussproc', 'gaussian process']:
             fitspec = mle.GaussMaxLike(self.x, self.y, obs=obs, fitmethod=fitmethod)
@@ -63,10 +63,10 @@ class MarkovChainMonteCarlo(object):
             fitspec = mle.MaxLikelihood(self.x, self.y, obs=obs, fitmethod=fitmethod)
             self.fitparams = fitspec.mlest(self.lpost, ain, bounds=bounds, obs=obs)
 
-        self.popt = fitparams['popt'] 
-        self.cov = fitparams['cov']
+        self.popt = self.fitparams['popt'] 
+        self.cov = self.fitparams['cov']
 
-        return fitparams
+        return self.fitparams
 
 
     ### auxiliary function used in check_convergence
@@ -326,7 +326,10 @@ class MetropolisHastings(MarkovChainMonteCarlo, object):
         return
 
 
-    def run_mcmc(self, popt=None, cov=None, nchain=200, niter=100, burnin=100, a=2.0):
+    def run_mcmc(self, popt=None, cov=None, nchain=10, niter=5000, burnin=2500):
+
+        self.niter = niter
+        self.nchain = nchain
 
 
         ## if parameter burnin is smaller than one, interpret it as a fraction of niter
@@ -336,7 +339,7 @@ class MetropolisHastings(MarkovChainMonteCarlo, object):
         else:
             self.burnin = burnin
 
-        if not popt and not cov:
+        if popt==None and cov==None:
             try:
                 self.popt
                 self.cov
@@ -348,13 +351,13 @@ class MetropolisHastings(MarkovChainMonteCarlo, object):
             self.cov = cov
 
  
-        p0 = [self.pdist(self.popt,self.pcov) for i in xrange(nchain)]
+        p0 = [self.pdist(self.popt,self.cov) for i in xrange(nchain)]
 
         allsamplers = []
 
         for nc in xrange(nchain):
 
-           sampler = MHChain(self.popt, self.cov, self.niter, burnin=self.burnin, pdist=self.pdist, emcee=self.emcee)
+           sampler = MHChain(self.lpost, self.popt, self.cov, self.niter, burnin=self.burnin, pdist=self.pdist, emcee=self.emcee)
            sampler.run_chain(t0=p0[nc])
 
            sampler.run_diagnostics(namestr=self.namestr+'_chain'+str(nc))
@@ -389,13 +392,16 @@ class MetropolisHastings(MarkovChainMonteCarlo, object):
 
 class MarkovChain(object):
 
-    def __init__(self, popt, pcov, niter, burnin=0.5, pdist='mvn'): 
+    def __init__(self, lpost, popt, cov, niter, burnin=0.5, pdist=None): 
 
-        if pdist.lower() in ['mvn', 'multivariate normal', 'normal', 'gaussian']:
+        self.lpost = lpost
+
+        if not pdist:
              self.pdist = np.random.multivariate_normal
-
+        else:
+             self.pdist = pdist
         self.popt = popt
-        self.pcov = pcov
+        self.cov = cov
 
         self.niter = niter
 
@@ -441,7 +447,7 @@ class MarkovChain(object):
             plt.title("Time series for parameter " + str(paraname[i]) + ".")
 
             ### make a normal distribution to compare to
-            #tsnorm = [np.random.normal(self.pcov[i], self.terr[i]) for x in range(len(ts)) ]
+            #tsnorm = [np.random.normal(self.cov[i], self.terr[i]) for x in range(len(ts)) ]
 
             p2 = plt.subplot(len(self.popt), 3, (i*3)+2)
 
@@ -468,9 +474,10 @@ class MarkovChain(object):
 
 class MHChain(MarkovChain, object):
 
-    def __init__(self, popt, pcov, niter, burnin=0.5, pdist="mvn", emcee=True):
+    def __init__(self, lpost, popt, cov, niter, burnin=0.5, pdist="mvn", emcee=True):
         self.emcee = emcee
-        MarkovChain.__init__(self, popt, pcov, niter, burnin, pdist)
+        print("pdist: " + str(pdist))
+        MarkovChain.__init__(self, lpost, popt, cov, niter, burnin, pdist)
 
 
     def run_chain(self, t0=None, niter = None, burnin = None):
@@ -485,11 +492,13 @@ class MHChain(MarkovChain, object):
                 self.burnin = burnin
                 self.allsamples = burnin + self.niter
 
+        if t0 == None:
+            t0 = self.pdist(self.popt, self.cov)
 
 
         if self.emcee:
 
-            sampler = emcee.MHSampler(self.pcov, dim=ndim, lpostfn=lpost, args=[False])
+            sampler = emcee.MHSampler(self.cov, dim=ndim, lpostfn=lpost, args=[False])
             pos, prob, state = sampler.run_mcmc(p0[nc], self.burnin)
             sampler.reset()
  
@@ -504,25 +513,16 @@ class MHChain(MarkovChain, object):
 
             ### set up array
             ttemp, logp = [], []
-            ttemp.append(self.t0)
+            ttemp.append(t0)
             #lpost = posterior.PerPosterior(self.ps, self.func)
-            logp.append(self.lpost(self.t0, neg=False))
-     
-            #print "self.popt: " + str(self.t0)
-            #print "self.pcov: " + str(self.pcov)
-     
-            #print("np.arange(self.niter-1)+1" +  str(np.arange(self.niter-1)+1))
+            logp.append(self.lpost(t0, neg=False))
+
             for t in np.arange(self.allsamples-1)+1:
-                print("cov: " + str(self.pcov))
-     
-                tprop = dist(ttemp[t-1], self.pcov)
-                print("tprop: " + str(tprop))
+
+                tprop = self.pdist(ttemp[t-1], self.cov)
      
                 pprop = self.lpost(tprop)#, neg=False)
-                #pprop = lpost(tprop, self.func, ps)
-                print("pprop: " + str(pprop))
      
-                #logr = logp[t-1] - pprop
                 logr = pprop - logp[t-1]
                 logr = min(logr, 0.0)
                 r= np.exp(logr)
