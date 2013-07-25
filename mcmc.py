@@ -11,6 +11,7 @@ import scipy.optimize
 import scipy.stats
 import math
 import emcee
+import xbblocks
 
 import generaltools as gt
 import posterior
@@ -73,7 +74,7 @@ class MarkovChainMonteCarlo(object):
                 func = None
 
             fitspec = mle.GaussMaxLike(self.x, self.y, obs=obs, fitmethod=fitmethod)
-            self.fitparams = fitspec.mlest(self.lpost, ain, func=kwargs['func'], obs=obs, bounds=bounds)
+            self.fitparams = fitspec.mlest(self.lpost, ain, func=func, obs=obs, bounds=bounds)
 
         else:
             fitspec = mle.MaxLikelihood(self.x, self.y, obs=obs, fitmethod=fitmethod)
@@ -321,6 +322,59 @@ class MarkovChainMonteCarlo(object):
         return
 
 
+    def _findmodes(self, mode_method='blocks', **kwargs):
+        if mode_method.lower() in ['bayes', 'blocks', 'bb', 'bayesian blocks', 'b']:
+        ## 1) compute mode in the distribution via Bayesian Blocks
+            try:
+                pmeans = self.bayesblocks_mode(kwargs["p0"], kwargs["nbootstrap"])
+            except KeyError:
+                pmeans = self.bayesblocks_mode() 
+
+        else:
+            raise Exception("No other mode-finding algorithms implemented right now! Sorry!")
+
+
+
+
+    def bayesblocks_mode(self, p0=0.05, nbootstrap=10):
+        chain = np.tranpose(self.flatchain)
+        for i,c in enumerate(chain):
+            csort = np.sort(c)
+            pinfo = xbblocks.bsttbblock(csort, min(csort), max(csort), p0, nbootstrap)
+            pmaxind = np.where(pinfo.counts == max(pinfo.counts))
+            pledge = pinfo.ledges[pmaxind]
+            predge = pinfo.redges[pmaxind]
+            pmeans.append(np.mean[pledge, predge])
+
+        return pmeans
+    ### compute evidence following Rutger van Haasteren's method from
+    ### his unpublished 2009 paper
+    ### a, b and c are the fractions used for computing the subvolume
+    ### see his paper for explanations
+    def compute_evidence(self, a=0.05, b=0.2, c=0.33, mode_method='blocks', **kwargs):
+
+        ## number of samples
+        m = len(self.flatchain)
+
+        ## 1) compute mode in the distribution via Bayesian Blocks
+        pmeans = self._findmodes(mode_method, **kwargs)
+                        
+        
+        ## 2) reverse sort samples by function value:
+        lnp_sort, chain_sort = [list(x) for x in zip(*sorted(zip(self.flatlnprob, self.flatchain), key=itemgetter(0), reverse=True))]
+
+        ## 3) approximate maximum:
+        k = a*m
+        chainsort_small = chain_sort[:k]
+        ksum = np.sum(chainsort_small, axis=0)
+
+        ## 4) compute covariance matrix
+        n = b*m
+        chaindiff = [x - ksum for x in chain_sort[:n]] 
+        ### bias set to 1 such that normalisation is 1/n
+        covar = np.cov(chaindiff, bias=1)
+
+
 
 
 class MetropolisHastings(MarkovChainMonteCarlo, object):
@@ -394,8 +448,10 @@ class MetropolisHastings(MarkovChainMonteCarlo, object):
     def _flatchain(self):
 
         self.flatchain = list(self.chain[0])
-        for c in self.chain[1:]:
+        self.flatlnprob = list(allsamplers[0].lnprobability)
+        for c,a in zip(self.chain[1:], allsamplers[1:]):
             self.flatchain.extend(c)
+            self.flatlnprob.extend(a.lnprobability)
 
         return
 
