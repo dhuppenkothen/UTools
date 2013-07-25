@@ -7,6 +7,7 @@ import cPickle as pickle
 import copy
 
 import numpy as np
+import scipy.special as special
 import scipy.optimize
 import scipy.stats
 import math
@@ -373,8 +374,27 @@ class MarkovChainMonteCarlo(object):
         chaindiff = [x - ksum for x in chain_sort[:n]] 
         ### bias set to 1 such that normalisation is 1/n
         covar = np.cov(chaindiff, bias=1)
+        invc = np.linalg.inv(covar)
+        detc = np.linalg.det(covar)
+
+        ## 5) compute the radius of the ellipsoid
+        l = c*m
+        pmax = chain_sort[l] - ksum
+        rsquare = np.dot(np.dot(np.transpose(pmax), invc), pmax)
+        r = np.sqrt(rsquare)
+
+        ## 6) calculate volume
+        gammafunc = special.gamma(1.0+(k/2.0))
+        vol = (r**np.float(k))*(np.pi**(np.float(k)/2.0))*np.sqrt(detc)/gammafunc
+
+        alpha = vol*np.sum(lnp_sort[:l])
+        evidence = l*alpha
+
+        return evidence
 
 
+
+        
 
 
 class MetropolisHastings(MarkovChainMonteCarlo, object):
