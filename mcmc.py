@@ -5,6 +5,7 @@ from pylab import *
 from matplotlib.ticker import MaxNLocator
 import cPickle as pickle
 import copy
+from operator import itemgetter
 
 import numpy as np
 import scipy.special as special
@@ -63,7 +64,7 @@ class MarkovChainMonteCarlo(object):
             ps.nphots = ps.ps[0]
             ps.df = ps.freq[1] - ps.freq[0] 
             fitspec = mle.PerMaxLike(ps, fitmethod=fitmethod, obs=obs)
-            print("ain: " + str(ain))
+            #print("ain: " + str(ain))
             self.fitparams = fitspec.mlest(self.lpost.func, ain, bounds=bounds)
 
         elif self.datatype in ['gauss', 'gp', 'gaussproc', 'gaussian process']:
@@ -338,14 +339,15 @@ class MarkovChainMonteCarlo(object):
 
 
     def bayesblocks_mode(self, p0=0.05, nbootstrap=10):
-        chain = np.tranpose(self.flatchain)
+        chain = np.transpose(self.flatchain)
+        pmeans = []
         for i,c in enumerate(chain):
             csort = np.sort(c)
             pinfo = xbblocks.bsttbblock(csort, min(csort), max(csort), p0, nbootstrap)
             pmaxind = np.where(pinfo.counts == max(pinfo.counts))
             pledge = pinfo.ledges[pmaxind]
             predge = pinfo.redges[pmaxind]
-            pmeans.append(np.mean[pledge, predge])
+            pmeans.append(np.mean([pledge, predge]))
 
         return pmeans
     ### compute evidence following Rutger van Haasteren's method from
@@ -358,7 +360,7 @@ class MarkovChainMonteCarlo(object):
         m = len(self.flatchain)
 
         ## 1) compute mode in the distribution via Bayesian Blocks
-        pmeans = self._findmodes(mode_method, **kwargs)
+        #pmeans = self._findmodes(mode_method, **kwargs)
                         
         
         ## 2) reverse sort samples by function value:
@@ -366,20 +368,33 @@ class MarkovChainMonteCarlo(object):
 
         ## 3) approximate maximum:
         k = a*m
-        chainsort_small = chain_sort[:k]
-        ksum = np.sum(chainsort_small, axis=0)
+        chainsort_small = chain_sort[:int(k)]
+        ksum = np.sum(chainsort_small, axis=0)/float(k)
 
         ## 4) compute covariance matrix
         n = b*m
-        chaindiff = [x - ksum for x in chain_sort[:n]] 
+        chaindiff = [x - ksum for x in chain_sort[:int(n)]] 
+        #print("chaindiff: " + str(chaindiff))
         ### bias set to 1 such that normalisation is 1/n
-        covar = np.cov(chaindiff, bias=1)
+#        covar = np.sum([np.cov(x,x)*(len(x)-1.0) for x in chaindiff], axis=0)/float(n)
+
+        covar = np.zeros([len(self.popt), len(self.popt)])
+        print('shape ksum: ' + str(np.shape(covar)))
+        for cs in chaindiff:
+            for i,csr in enumerate(cs):
+               for j,csc in enumerate(cs):
+                   covar[i,j] = covar[i,j] + csr*csc
+        covar = covar/float(n)
+
+
+
+        print("covar: " + str(covar))
         invc = np.linalg.inv(covar)
         detc = np.linalg.det(covar)
 
         ## 5) compute the radius of the ellipsoid
         l = c*m
-        pmax = chain_sort[l] - ksum
+        pmax = chain_sort[int(l)] - ksum
         rsquare = np.dot(np.dot(np.transpose(pmax), invc), pmax)
         r = np.sqrt(rsquare)
 
@@ -387,7 +402,7 @@ class MarkovChainMonteCarlo(object):
         gammafunc = special.gamma(1.0+(k/2.0))
         vol = (r**np.float(k))*(np.pi**(np.float(k)/2.0))*np.sqrt(detc)/gammafunc
 
-        alpha = vol*np.sum(lnp_sort[:l])
+        alpha = vol*np.sum(lnp_sort[:int(l)])
         evidence = l*alpha
 
         return evidence
@@ -443,11 +458,11 @@ class MetropolisHastings(MarkovChainMonteCarlo, object):
  
         p0 = [self.pdist(self.popt,self.cov) for i in xrange(nchain)]
 
-        allsamplers = []
+        self.allsamplers = []
 
         for nc in xrange(nchain):
 
-           sampler = MHChain(self.lpost, 
+            sampler = MHChain(self.lpost, 
                              self.popt, 
                              self.cov, 
                              self.niter, 
@@ -456,20 +471,20 @@ class MetropolisHastings(MarkovChainMonteCarlo, object):
                              emcee=self.emcee, 
                              namestr = self.namestr+'_chain'+str(nc) )
 
-           sampler.run_chain(t0=p0[nc])
+            sampler.run_chain(t0=p0[nc])
 
-           sampler.run_diagnostics()
-           allsamplers.append(sampler)
+            sampler.run_diagnostics()
+            self.allsamplers.append(sampler)
 
 
-        self.chain = [a.chain for a in allsamplers]
+        self.chain = [a.chain for a in self.allsamplers]
         self._flatchain()
 
     def _flatchain(self):
 
         self.flatchain = list(self.chain[0])
-        self.flatlnprob = list(allsamplers[0].lnprobability)
-        for c,a in zip(self.chain[1:], allsamplers[1:]):
+        self.flatlnprob = list(self.allsamplers[0].lnprobability)
+        for c,a in zip(self.chain[1:], self.allsamplers[1:]):
             self.flatchain.extend(c)
             self.flatlnprob.extend(a.lnprobability)
 
