@@ -54,7 +54,7 @@ class PowerSpectrum(lightcurve.Lightcurve):
         else:
             nphots = nphot
         nel = np.round(lc.tseg/lc.res)
-        print(nel)
+        #print(nel)
         #if lc.tseg/lc.res > nel:
         #    nel = nel + 1
      
@@ -83,7 +83,7 @@ class PowerSpectrum(lightcurve.Lightcurve):
         elif norm.lower() in ['rms']:
             #self.ps = 2.0*lc.tseg*2.0*np.sqrt(nel)*fr[0:(nel/2 -1)]/(nphots**2.0)
             self.ps = ps/(df*nphots)        
-            print "ps rms: " + str(self.ps[0])
+            #print "ps rms: " + str(self.ps[0])
         ### put frequency to mid-frequencies
         elif norm.lower() in ['variance', 'var']:
             #self.ps = ps*nphots/len(lc.counts)
@@ -162,7 +162,7 @@ class PowerSpectrum(lightcurve.Lightcurve):
 
             ### add together powers
             ### is this right, or should it be ihigh+1 ????
-            print "method: " + str(method)
+            #print "method: " + str(method)
             if method == 'sum':
                 psnew = sum(ps[ilow+1:ihigh]) + ps[ilow]*fracbinlow + ps[ihigh]*fracbin 
             elif method.lower() in ['average', 'mean']:
@@ -293,17 +293,17 @@ class PowerSpectrum(lightcurve.Lightcurve):
         pnorm = 10**pfinal[1]
 
         ypl = 10.0**pfinal[1]*(np.array(freq)**(pfinal[0]))
-        print ypl
+        #print ypl
         #ypl = 10.0**ypl
         #print ypl
         ypl = list(ypl)
         ypl.reverse()
-        print "ypl: " + str(ypl)
+        #print "ypl: " + str(ypl)
         plstop = np.array(ypl).searchsorted(noise)
         ypl.reverse()
-        print "plstop: " + str(plstop)
+        #print "plstop: " + str(plstop)
         maxpl = len(freq) - plstop
-        print "maxpl: " + str(maxpl)
+        #print "maxpl: " + str(maxpl)
         yfit = ypl[:maxpl]
         yfit.extend([noise for x in freq[maxpl:]])
         #yconst = [pfinal[2] for bla in freq]

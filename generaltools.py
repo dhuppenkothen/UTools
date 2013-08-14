@@ -782,11 +782,16 @@ class TwoPrint(object):
 
     def __init__(self,filename):
         self.file = open(filename, "w")
+        self.filename = filename
+        self.file.write("##\n")
+        self.close()
         return
 
     def __call__(self, printstr):
         print(printstr)
+        self.file = open(self.filename, "a")
         self.file.write(printstr + "\n")
+        self.close()
         return
 
     def close(self):

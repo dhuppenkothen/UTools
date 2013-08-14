@@ -694,7 +694,7 @@ class MaxLikelihood(object):
     ###      if True: compute the negative of the posterior
     def _fitting(self, optfunc, ain, bounds, optfuncprime=None, neg = True, obs=True): 
 
-        print("optfunc in _fitting:" + str(optfunc))
+        #print("optfunc in _fitting:" + str(optfunc))
  
         lenpower = float(len(self.y))
  
@@ -781,7 +781,7 @@ class MaxLikelihood(object):
  
         ### compute deviance
         try:
-            fitparams['deviance'] = 2.0*optfunc.loglikelihood(fitparams['popt'], neg=True)
+            fitparams['deviance'] = 2.0*optfunc.loglikelihood(fitparams['popt'])
         except AttributeError:
             fitparams['deviance'] = 2.0*optfunc(fitparams['popt'])
 
@@ -1228,7 +1228,7 @@ class PerMaxLike(MaxLikelihood):
             ain[1] = ain[1] + np.log(renorm)
 
 
-        print('noise index: ' + str(noise))
+        #print('noise index: ' + str(noise))
         ### If last parameter is noise level, renormalize noise level
         ### to something useful:
         if not noise == None:
@@ -1358,15 +1358,15 @@ class PerMaxLike(MaxLikelihood):
         df = (self.x[1]-self.x[0])
         ### first, compute the maximum binning that would even make sense
         bmax = int(self.x[-1]/(2.0*(self.x[1]-self.x[0])))
-        print('bmax: ' + str(bmax))
+        #print('bmax: ' + str(bmax))
         bins = [1,3,5,7,10,15,20,30,50,70,100,200,300,500]
      
 
         bindict = {}
 
         for b in bins:
-            print('bmax: ' + str(bmax))
-            print('b: ' + str(b))
+            #print('bmax: ' + str(bmax))
+            #print('b: ' + str(b))
             if b < bmax:
                 if b == 1:
                     binps = self.ps
@@ -1377,14 +1377,14 @@ class PerMaxLike(MaxLikelihood):
                 bindict[binpsname] = binps
                 binpl = func(binps.freq, *fitparams["popt"])
                 binratio = 2.0*np.array(binps.ps)/binpl
-                print("len(binratio): " + str(len(binratio)))
-                print("mean(binratio): " + str(mean(binratio)))
+                #print("len(binratio): " + str(len(binratio)))
+                #print("mean(binratio): " + str(mean(binratio)))
                 maxind = np.where(binratio[1:] == max(binratio[1:]))
                 #print('maxind: ' + str(maxind))
                 binmaxpow = "bmax" + str(b)
                 bindict[binmaxpow] = max(binratio[1:])
                 binmaxfreq = "bmaxfreq" + str(b)
-                print("maxind[0]: " + str(maxind[0]+1))
+                #print("maxind[0]: " + str(maxind[0]+1))
                 bindict[binmaxfreq] = binps.freq[maxind[0]+1]
                 #setattr(self, "bmax" + str(b), max(binratio[1:]))
                 #setattr(self, "b" + str(b) + "maxfreq", binps.freq[maxind+1]) 
