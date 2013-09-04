@@ -261,8 +261,8 @@ class MarkovChainMonteCarlo(object):
             plt.subplots_adjust(top=0.925, bottom=0.025, left=0.025, right=0.975, wspace=0.2, hspace=0.2)
             for i in range(N):
                 for j in range(N):
-                    xmin, xmax = self.flatchain[j][:1000].min(), self.flatchain[j][:1000].max()
-                    ymin, ymax = self.flatchain[i][:1000].min(), self.flatchain[i][:1000].max()
+                    xmin, xmax = self.flatchain[j][:5000].min(), self.flatchain[j][:5000].max()
+                    ymin, ymax = self.flatchain[i][:5000].min(), self.flatchain[i][:5000].max()
                     ax = fig.add_subplot(N,N,i*N+j+1)
                     #ax.axis([xmin, xmax, ymin, ymax])
                     ax.xaxis.set_major_locator(MaxNLocator(5))
@@ -272,7 +272,7 @@ class MarkovChainMonteCarlo(object):
 
                     if i == j:
                         #pass
-                        ntemp, binstemp, patchestemp = ax.hist(self.flatchain[i][:1000], 30, normed=True, histtype='stepfilled')
+                        ntemp, binstemp, patchestemp = ax.hist(self.flatchain[i][:5000], 30, normed=True, histtype='stepfilled')
                         n.append(ntemp)
                         bins.append(binstemp)
                         patches.append(patchestemp)
@@ -288,20 +288,20 @@ class MarkovChainMonteCarlo(object):
                    #     np.random.shuffle(self.mcall)
 
                         ### make a scatter plot first
-                        ax.scatter(self.flatchain[j][:1000], self.flatchain[i][:1000], s=7)
+                        ax.scatter(self.flatchain[j][:5000], self.flatchain[i][:5000], s=7)
                         ### then add contours
 
 #                        np.random.shuffle(self.mcall)
 
-                        xmin, xmax = self.flatchain[j][:1000].min(), self.flatchain[j][:1000].max()
-                        ymin, ymax = self.flatchain[i][:1000].min(), self.flatchain[i][:1000].max()
+                        xmin, xmax = self.flatchain[j][:5000].min(), self.flatchain[j][:5000].max()
+                        ymin, ymax = self.flatchain[i][:5000].min(), self.flatchain[i][:5000].max()
 
 
                         ### Perform Kernel density estimate on data
                         try:
                             X,Y = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
                             positions = np.vstack([X.ravel(), Y.ravel()])
-                            values = np.vstack([self.flatchain[j][:1000], self.flatchain[i][:1000]])
+                            values = np.vstack([self.flatchain[j][:5000], self.flatchain[i][:5000]])
                             kernel = scipy.stats.gaussian_kde(values)
                             Z = np.reshape(kernel(positions).T, X.shape)
 
