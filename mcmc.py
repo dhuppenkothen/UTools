@@ -216,7 +216,9 @@ class MarkovChainMonteCarlo(object):
             plt.savefig(self.namestr + "_quantiles.ps")
             plt.close()
 
-    def mcmc_infer(self):
+    def mcmc_infer(self, plot=True):
+
+        self.plot = plot
 
         #if printobj:
         #    print = printobj
@@ -480,6 +482,7 @@ class MetropolisHastings(MarkovChainMonteCarlo, object):
 
         self.chain = [a.chain for a in self.allsamplers]
         self._flatchain()
+        self.flatchain = np.transpose(self.flatchain)
 
     def _flatchain(self):
 
