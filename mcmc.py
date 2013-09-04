@@ -11,6 +11,7 @@ import numpy as np
 import scipy.special as special
 import scipy.optimize
 import scipy.stats
+from scipy.stats.mstats import mquantiles as quantiles
 import math
 import emcee
 import xbblocks
