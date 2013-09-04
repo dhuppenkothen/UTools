@@ -217,10 +217,10 @@ class MarkovChainMonteCarlo(object):
 
     def mcmc_infer(self):
 
-        if printobj:
-            print = printobj
-        else:
-            from __builtin__ import print as print
+        #if printobj:
+        #    print = printobj
+        #else:
+        #    from __builtin__ import print as print
 
 
         ### covariance of the parameters from simulations
