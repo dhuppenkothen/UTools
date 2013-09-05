@@ -29,10 +29,13 @@ def skewed_normal(x, mu, sigma, alpha, amplitude, c=0.0):
 # such that I can implement a scale prior on both
 #
 #
-def logskew(x, mu, sigma, alpha, amplitude, c=0.0):
+def logskew(x, mu, sigma, alpha, amplitude, c=None):
 
     sigma = np.exp(sigma)
-    c = np.exp(c)
+    if not c:
+        c = 0.0
+    else:
+        c = np.exp(c)
     return skewed_normal(x, mu, sigma, alpha, amplitude, c)
 
 
