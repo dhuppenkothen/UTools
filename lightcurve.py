@@ -98,6 +98,37 @@ class Lightcurve(object):
         self.bintime, self.bincounts, self.binres = self._rebin(self.time, self.counts, nbins, method, verbose=verbose)
 
 
+    def bkgestimate(self, tseg, loc='both'):
+       
+        tmin = np.array(self.time).searchsorted(self.time[0]+tseg)
+        tmax = np.array(self.time).searchsorted(self.time[-1]-tseg)
+        cmin = np.mean(self.counts[:tmin])
+        cmax = np.mean(self.counts[tmax:])
+        if loc == 'both':
+            print("The mean counts/bin before the burst is: " + str(cmin))
+            print("The mean counts/bin after the burst is: " + str(cmax))
+            print("The combined mean counts/bin is : " + str(np.mean([cmin, cmax])))
+            self.meanbkg = np.mean([cmin, cmax])
+        elif loc == 'before':
+            print("The mean counts/bin before the burst is: " + str(cmin))
+            self.meanbkg = cmin
+        elif loc == 'after':
+            print("The mean counts/bin after the burst is: " + str(cmax))
+            self.meanbkg = cmax
+        return
+
+
+    def removebkg(self, tseg, loc='both'):
+        self.bkgestimate(tseg, loc=loc)
+        counts = self.counts - self.meanbkg
+        zeroinds = np.where(counts <= 0.0)[0]
+        time = np.array([t for i,t in enumerate(self.time) if not i in zeroinds ])
+        counts = np.array([c for i,c in enumerate(counts) if not i in zeroinds ])
+
+        self.ctime = time
+        self.ccounts = counts
+        return
+
     ### add Poisson noise to a light curve
     ### this is of some use for artificially created light curves
     def addpoisson(self):
