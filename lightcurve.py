@@ -78,9 +78,9 @@ class Lightcurve(object):
             lfile.write(str(t) + "\t" + str(c) + "\t" + str(cr) + "\n")
         lfile.close()
 
-    def plotLightcurve(self, filename, plottype='counts'):
+    def plot(self, filename, plottype='counts'):
         if plottype in ['counts']:
-            plt.plot(self.time, self.counts)
+            plt.plot(self.time, self.counts, lw=3, color='navy', linestyle='steps-mid')
             plt.ylabel('counts', fontsize=18)
         elif plottype in ['countrate']:
             plt.plot(self.time, self.countrate)

@@ -31,12 +31,59 @@ def skewed_normal(x, mu, sigma, alpha, amplitude, c=0.0):
 #
 def logskew(x, mu, sigma, alpha, amplitude, c=None):
 
-    sigma = np.exp(sigma)
+    #sigma = np.exp(sigma)
     if not c:
         c = 0.0
     else:
         c = np.exp(c)
     return skewed_normal(x, mu, sigma, alpha, amplitude, c)
+
+### CAUCHY DISTRIBUTION #########
+#
+# define Cauchy distribution, also called
+# Lorentzian distribution
+#
+#
+def cauchy(x, mu, scale, amplitude, c=None):
+    if not c:
+        c = 0.0
+    else:
+        c = np.exp(c)
+
+    ### define PDF
+    amp = np.exp(amplitude)/np.pi
+    loc = (x - mu)**2.0
+    denom = loc + scale**2.0
+    pdf = amp*scale/denom + c
+
+    return pdf
+
+
+#### SKEW-CAUCHY DISTRIBUTION ###############
+#
+# define a skew-Cauchy distribution (=skew Lorentzian)
+# of the form:
+#  p(x) = f(x)*F(ax)
+# where f(x) is the PDF, F(ax) is the CDF and a is a scale parameter
+#
+#
+def skew_cauchy(x, mu, scale, alpha, amplitude, c=None):
+
+    if not c:
+        c = 0.0
+    else:
+        c = np.exp(c)
+
+    pdf = cauchy(x, mu, scale, amplitude)
+
+    amp = 1.0/np.pi
+    y = alpha*(x - mu)/scale
+    tangent = np.arctan(y)
+    cdf = amp*tangent + 0.5
+
+    res = 2.0*pdf*cdf + c
+
+    return res
 
 
 def asymmetric_envelope(x, trise, amplitude, c=0.0):

@@ -101,6 +101,18 @@ def envelope(x, tstart, tend, trise, tfall, amplitude):
 
     res = amplitude*np.exp(rexp + fexp)
 
+    #xsind = np.array(x).searchsorted(tstart)-1
+    #xeind = np.array(x).searchsorted(tend)+1
+    #xnew = x[xsind:xeind]
+    #xnew = xnew[1:] - xnew[0]
+
+    #rexp = -trise/(xnew)
+    #fexp = tfall/(xnew)
+
+    #resb = amplitude*np.exp(rexp + fexp)
+    #res = np.zeros(len(x))
+    #res[xsind+1:xeind] = resb
+
     return res
     
 
