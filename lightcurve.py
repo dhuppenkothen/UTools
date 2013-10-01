@@ -27,7 +27,7 @@ def sin(x, a,b,c,d):
 #### BRAND-NEW CLASS IMPLEMENTATION!!!!
 
 class Lightcurve(object):
-    def __init__(self, time, counts = None, timestep=1.0, tseg=None, verbose = False):
+    def __init__(self, time, counts = None, timestep=1.0, tseg=None, verbose = False, tstart = None):
 
         if counts == None:
             if verbose == True:
@@ -35,6 +35,8 @@ class Lightcurve(object):
                 print "Time resolution of light curve: " + str(timestep)
             ### TOA has a list of photon times of arrival
             self.toa = time
+            self.ncounts = len(self.toa)
+            self.tstart = tstart
             self.makeLightcurve(timestep, tseg = tseg,verbose=verbose)
             
         else:
@@ -49,18 +51,32 @@ class Lightcurve(object):
             self.counts
             raise Exception("You can't make a light curve out of a light curve! Use rebinLightcurve for rebinning.")
         except AttributeError:
+
+            if self.tstart == None:
+                tstart = self.toa[0]
+            else:
+                tstart = self.tstart
             ### number of bins in light curve
             if tseg:
-                timebin = np.round(tseg/timestep)
+                timebin = np.ceil(tseg/timestep)
             else:
                 timebin = np.floor((self.toa[-1] - self.toa[0])/timestep) + 1
-            print('timebin: ' + str(timebin))
+            print('tstart: ' + str(tstart))
             ### make histogram
-            timebins = np.arange(timebin+1)*timestep + self.toa[0]
-            counts, histbins = np.histogram(self.toa, bins=timebins)
+            if self.ncounts == 0:
+                print("No counts in light curve!")
+                timebins = np.arange(timebin+1)*timestep + tstart
+                counts = np.zeros(len(timebins)-1)
+                histbins = timebins
+                self.res = timebins[1] - timebins[0]
+            else:
+                timebins = np.arange(timebin+1)*timestep + tstart
+                counts, histbins = np.histogram(self.toa, bins=timebins)
+                self.res = histbins[1] - histbins[0]
+
+            #print("len timebins: " + str(len(timebins)))
             self.counts = np.array(counts) 
             ### time resolution of light curve
-            self.res = histbins[1] - histbins[0]
             if verbose == True:
                 print "Please note: "
                 print "You specified the time resolution as: " + str(timestep)+ "."
