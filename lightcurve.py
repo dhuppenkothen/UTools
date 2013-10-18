@@ -227,7 +227,7 @@ class Lightcurve(object):
         told = time[1] - time[0]
 
         ### tseg: length of the entire segment
-        tseg = time[-1] - time[0] + told
+        tseg = time[-1] - time[0] #+ told
         #print "tseg: " + str(tseg)
 
         if verbose == True:
@@ -338,7 +338,7 @@ class Lightcurve(object):
                     ### take integer part of ttemp and sum up
                     aint = sum(counts[before_ind+1:before_ind+1+int(math.floor(ttemp))])
                     ### fracind is the index of the last old bin that is split up between the current new bin and the next
-                    fracind = np.floor(before_ind + 1 + math.floor(ttemp))
+                    fracind = np.int(before_ind + 1 + math.floor(ttemp))
                     #print "fracind 2 : " + str(fracind)
                     ### redefine frac
                     frac = ttemp - math.floor(ttemp)
@@ -348,7 +348,7 @@ class Lightcurve(object):
                     ### if frac is not zero, calculate the part of the old bin that will be in the current new bin
                     if not frac == 0:
                         #print("fracind2: " + str(fracind))
-                        afrac2 = frac*counts[fracind]
+                        afrac2 = frac*counts[int(fracind)]
                         #print "afrac2: " + str(afrac2)
                         cbin.append(afrac1 + aint + afrac2)
                     else:
