@@ -47,22 +47,37 @@ class Lightcurve(object):
             self.tseg = self.time[-1] - self.time[0] + self.res
 
     def makeLightcurve(self, timestep, tseg=None, verbose=False):
+
+        ### if self.counts exists, this is already a light curve, so abort
         try:
             self.counts
             raise Exception("You can't make a light curve out of a light curve! Use rebinLightcurve for rebinning.")
         except AttributeError:
 
+            ## tstart is an optional parameter to set a starting time for the light curve
+            ## in case this does not coincide with the first photon
             if self.tstart == None:
+                ## if tstart is not set, assume light curve starts with first photon
                 tstart = self.toa[0]
             else:
                 tstart = self.tstart
             ### number of bins in light curve
+
+            ## compute the number of bins in the light curve
+            ## for cases where tseg/timestep are not integer, computer one
+            ## last time bin more that we have to subtract in the end
             if tseg:
                 timebin = np.ceil(tseg/timestep)
+                frac = (tseg/timestep) - int(timebin - 1)
             else:
-                timebin = np.floor((self.toa[-1] - self.toa[0])/timestep) + 1
+                timebin = np.ceil((self.toa[-1] - self.toa[0])/timestep)
+                frac = (self.toa[-1] - self.toa[0])/timestep - int(timebin - 1)
             print('tstart: ' + str(tstart))
+
+            tend = tstart + timebin*timestep
+
             ### make histogram
+            ## if there are no counts in the light curve, make empty bins
             if self.ncounts == 0:
                 print("No counts in light curve!")
                 timebins = np.arange(timebin+1)*timestep + tstart
@@ -71,11 +86,14 @@ class Lightcurve(object):
                 self.res = timebins[1] - timebins[0]
             else:
                 timebins = np.arange(timebin+1)*timestep + tstart
-                counts, histbins = np.histogram(self.toa, bins=timebins)
+                counts, histbins = np.histogram(self.toa, bins=timebin, range = [tstart, tend])
                 self.res = histbins[1] - histbins[0]
 
             #print("len timebins: " + str(len(timebins)))
-            self.counts = np.array(counts) 
+            if frac > 0.0:
+                self.counts = np.array(self.counts[:-1])
+            else:
+                self.counts = np.array(counts) 
             ### time resolution of light curve
             if verbose == True:
                 print "Please note: "
@@ -84,6 +102,10 @@ class Lightcurve(object):
 
             self.countrate = self.counts/self.res
             self.time = np.array([histbins[0] + 0.5*self.res + n*self.res for n in range(int(timebin))])
+            if frac > 0.0:
+                self.time = np.array(self.time[:-1])
+            else
+                self.time = self.time
             self.tseg = self.time[-1] - self.time[0] + self.res
 
     def saveLightcurve(self, filename):
