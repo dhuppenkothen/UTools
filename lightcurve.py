@@ -106,13 +106,17 @@ class Lightcurve(object):
         plt.savefig(str(filename) + '.ps')
         plt.close()
 
-    def rebinLightcurve(self, newres, method='sum', verbose = False):
+    def rebinLightcurve(self, newres, method='sum', verbose = False, implementation="new"):
         ### calculate number of bins in new light curve
         nbins = math.floor(self.tseg/newres)+1
         self.binres = self.tseg/nbins
         print "New time resolution is: " + str(self.binres)
-        self.bintime, self.bincounts, self.binres = self._rebin(self.time, self.counts, nbins, method, verbose=verbose)
 
+        if implementation in ["o", "old"]:
+            self.bintime, self.bincounts, self.binres = self._rebin(self.time, self.counts, nbins, method, verbose=verbose)
+        else:
+            print("I am here")
+            self.bintime, self.bincounts, self.binres = self._rebin_new(self.time, self.counts, newres, method)
 
     def bkgestimate(self, tseg, loc='both'):
        
@@ -216,6 +220,41 @@ class Lightcurve(object):
         fitparams = {"popt":popt, "cov":pcov, "err":stderr, "mfit":newfit}
 
         return fitparams
+
+    def _rebin_new(time, counts, dtnew, method='sum'):
+
+        step_size = float(dtnew)/float(self.res)
+        
+        output = []
+        for i in numpy.arange(0, len(counts), step_size):
+            total = 0
+            print "Bin is " + str(i)
+
+            prev_frac = int(i+1) - i
+            prev_bin = int(i)
+            print "Fractional part of bin %d is %f"  %(prev_bin, prev_frac)
+            total += prev_frac * n[prev_bin]
+
+            if i + step_size < len(n):
+                # Fractional part of next bin:
+                next_frac = i+step_size - int(i+step_size)
+                next_bin = int(i+step_size)
+                print "Fractional part of bin %d is %f"  %(next_bin, next_frac)
+                total += next_frac * n[next_bin]
+
+            print "Fully included bins: %d to %d" % (int(i+1), int(i+step_size)-1)
+            total += sum(n[int(i+1):int(i+step_size)])
+            output.append(total)
+
+        tnew = np.arange(len(output))*dtnew + time[0]
+        if method in ['mean', 'avg', 'average', 'arithmetic mean']:
+            cbinnew = output
+            cbin = np.array(cbinnew)/float(step_size)
+        elif method not in ['sum']:
+            raise Exception("Method for summing or averaging not recognized. Please enter either 'sum' or 'mean'.")
+
+
+        return tnew, output, dtnew
 
 
     ### this method rebins a light curve to a new number of bins 'newbins'
