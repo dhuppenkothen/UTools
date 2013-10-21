@@ -91,7 +91,7 @@ class Lightcurve(object):
 
             #print("len timebins: " + str(len(timebins)))
             if frac > 0.0:
-                self.counts = np.array(self.counts[:-1])
+                self.counts = np.array(counts[:-1])
             else:
                 self.counts = np.array(counts) 
             ### time resolution of light curve
@@ -104,7 +104,7 @@ class Lightcurve(object):
             self.time = np.array([histbins[0] + 0.5*self.res + n*self.res for n in range(int(timebin))])
             if frac > 0.0:
                 self.time = np.array(self.time[:-1])
-            else
+            else:
                 self.time = self.time
             self.tseg = self.time[-1] - self.time[0] + self.res
 
