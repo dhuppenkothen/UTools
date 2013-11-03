@@ -47,22 +47,37 @@ class Lightcurve(object):
             self.tseg = self.time[-1] - self.time[0] + self.res
 
     def makeLightcurve(self, timestep, tseg=None, verbose=False):
+
+        ### if self.counts exists, this is already a light curve, so abort
         try:
             self.counts
             raise Exception("You can't make a light curve out of a light curve! Use rebinLightcurve for rebinning.")
         except AttributeError:
 
+            ## tstart is an optional parameter to set a starting time for the light curve
+            ## in case this does not coincide with the first photon
             if self.tstart == None:
+                ## if tstart is not set, assume light curve starts with first photon
                 tstart = self.toa[0]
             else:
                 tstart = self.tstart
             ### number of bins in light curve
+
+            ## compute the number of bins in the light curve
+            ## for cases where tseg/timestep are not integer, computer one
+            ## last time bin more that we have to subtract in the end
             if tseg:
                 timebin = np.ceil(tseg/timestep)
+                frac = (tseg/timestep) - int(timebin - 1)
             else:
-                timebin = np.floor((self.toa[-1] - self.toa[0])/timestep) + 1
+                timebin = np.ceil((self.toa[-1] - self.toa[0])/timestep)
+                frac = (self.toa[-1] - self.toa[0])/timestep - int(timebin - 1)
             print('tstart: ' + str(tstart))
+
+            tend = tstart + timebin*timestep
+
             ### make histogram
+            ## if there are no counts in the light curve, make empty bins
             if self.ncounts == 0:
                 print("No counts in light curve!")
                 timebins = np.arange(timebin+1)*timestep + tstart
@@ -71,11 +86,14 @@ class Lightcurve(object):
                 self.res = timebins[1] - timebins[0]
             else:
                 timebins = np.arange(timebin+1)*timestep + tstart
-                counts, histbins = np.histogram(self.toa, bins=timebins)
+                counts, histbins = np.histogram(self.toa, bins=timebin, range = [tstart, tend])
                 self.res = histbins[1] - histbins[0]
 
             #print("len timebins: " + str(len(timebins)))
-            self.counts = np.array(counts) 
+            if frac > 0.0:
+                self.counts = np.array(counts[:-1])
+            else:
+                self.counts = np.array(counts) 
             ### time resolution of light curve
             if verbose == True:
                 print "Please note: "
@@ -84,6 +102,10 @@ class Lightcurve(object):
 
             self.countrate = self.counts/self.res
             self.time = np.array([histbins[0] + 0.5*self.res + n*self.res for n in range(int(timebin))])
+            if frac > 0.0:
+                self.time = np.array(self.time[:-1])
+            else:
+                self.time = self.time
             self.tseg = self.time[-1] - self.time[0] + self.res
 
     def saveLightcurve(self, filename):
@@ -106,13 +128,17 @@ class Lightcurve(object):
         plt.savefig(str(filename) + '.ps')
         plt.close()
 
-    def rebinLightcurve(self, newres, method='sum', verbose = False):
+    def rebinLightcurve(self, newres, method='sum', verbose = False, implementation="new"):
         ### calculate number of bins in new light curve
         nbins = math.floor(self.tseg/newres)+1
         self.binres = self.tseg/nbins
         print "New time resolution is: " + str(self.binres)
-        self.bintime, self.bincounts, self.binres = self._rebin(self.time, self.counts, nbins, method, verbose=verbose)
 
+        if implementation in ["o", "old"]:
+            self.bintime, self.bincounts, self.binres = self._rebin(self.time, self.counts, nbins, method, verbose=verbose)
+        else:
+            print("I am here")
+            self.bintime, self.bincounts, self.binres = self._rebin_new(self.time, self.counts, newres, method)
 
     def bkgestimate(self, tseg, loc='both'):
        
@@ -217,6 +243,41 @@ class Lightcurve(object):
 
         return fitparams
 
+    def _rebin_new(time, counts, dtnew, method='sum'):
+
+        step_size = float(dtnew)/float(self.res)
+        
+        output = []
+        for i in numpy.arange(0, len(counts), step_size):
+            total = 0
+            print "Bin is " + str(i)
+
+            prev_frac = int(i+1) - i
+            prev_bin = int(i)
+            print "Fractional part of bin %d is %f"  %(prev_bin, prev_frac)
+            total += prev_frac * n[prev_bin]
+
+            if i + step_size < len(n):
+                # Fractional part of next bin:
+                next_frac = i+step_size - int(i+step_size)
+                next_bin = int(i+step_size)
+                print "Fractional part of bin %d is %f"  %(next_bin, next_frac)
+                total += next_frac * n[next_bin]
+
+            print "Fully included bins: %d to %d" % (int(i+1), int(i+step_size)-1)
+            total += sum(n[int(i+1):int(i+step_size)])
+            output.append(total)
+
+        tnew = np.arange(len(output))*dtnew + time[0]
+        if method in ['mean', 'avg', 'average', 'arithmetic mean']:
+            cbinnew = output
+            cbin = np.array(cbinnew)/float(step_size)
+        elif method not in ['sum']:
+            raise Exception("Method for summing or averaging not recognized. Please enter either 'sum' or 'mean'.")
+
+
+        return tnew, output, dtnew
+
 
     ### this method rebins a light curve to a new number of bins 'newbins'
     def _rebin(self, time, counts, newbins, method = 'sum', verbose = False):
@@ -227,7 +288,7 @@ class Lightcurve(object):
         told = time[1] - time[0]
 
         ### tseg: length of the entire segment
-        tseg = time[-1] - time[0] + told
+        tseg = time[-1] - time[0] #+ told
         #print "tseg: " + str(tseg)
 
         if verbose == True:
@@ -338,7 +399,7 @@ class Lightcurve(object):
                     ### take integer part of ttemp and sum up
                     aint = sum(counts[before_ind+1:before_ind+1+int(math.floor(ttemp))])
                     ### fracind is the index of the last old bin that is split up between the current new bin and the next
-                    fracind = np.floor(before_ind + 1 + math.floor(ttemp))
+                    fracind = np.int(before_ind + 1 + math.floor(ttemp))
                     #print "fracind 2 : " + str(fracind)
                     ### redefine frac
                     frac = ttemp - math.floor(ttemp)
@@ -348,7 +409,7 @@ class Lightcurve(object):
                     ### if frac is not zero, calculate the part of the old bin that will be in the current new bin
                     if not frac == 0:
                         #print("fracind2: " + str(fracind))
-                        afrac2 = frac*counts[fracind]
+                        afrac2 = frac*counts[int(fracind)]
                         #print "afrac2: " + str(afrac2)
                         cbin.append(afrac1 + aint + afrac2)
                     else:
