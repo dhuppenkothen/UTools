@@ -110,7 +110,8 @@ class PowerSpectrum(lightcurve.Lightcurve):
         newps.freq = binfreq
         newps.ps = binps
         newps.df = dt
-
+        newps.nphots = binps[0]
+        newps.n = 2*len(binps)
         return newps
 
 
