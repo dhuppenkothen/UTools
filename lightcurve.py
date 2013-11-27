@@ -243,7 +243,7 @@ class Lightcurve(object):
 
         return fitparams
 
-    def _rebin_new(time, counts, dtnew, method='sum'):
+    def _rebin_new(self, time, counts, dtnew, method='sum'):
 
         step_size = float(dtnew)/float(self.res)
         
@@ -255,17 +255,17 @@ class Lightcurve(object):
             prev_frac = int(i+1) - i
             prev_bin = int(i)
             print "Fractional part of bin %d is %f"  %(prev_bin, prev_frac)
-            total += prev_frac * n[prev_bin]
+            total += prev_frac * time[prev_bin]
 
-            if i + step_size < len(n):
+            if i + step_size < len(time):
                 # Fractional part of next bin:
                 next_frac = i+step_size - int(i+step_size)
                 next_bin = int(i+step_size)
                 print "Fractional part of bin %d is %f"  %(next_bin, next_frac)
-                total += next_frac * n[next_bin]
+                total += next_frac * time[next_bin]
 
             print "Fully included bins: %d to %d" % (int(i+1), int(i+step_size)-1)
-            total += sum(n[int(i+1):int(i+step_size)])
+            total += sum(time[int(i+1):int(i+step_size)])
             output.append(total)
 
         tnew = np.arange(len(output))*dtnew + time[0]
