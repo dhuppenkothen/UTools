@@ -9,7 +9,7 @@
 #
 import numpy as np
 from jplephread import jplephread
-from readposhist import poshist
+#from readposhist import poshist
 import pyfits
 import sys
 from math import floor
@@ -188,39 +188,39 @@ def jplephcalc(time, info, coeffsnew, tbase, objold):
     vz=vztemp*vfac/8.64e4
     return xtemp, ytemp, ztemp, vx, vy, vz
 
-def main():
-    date=str(sys.argv[1])
-    dateno=date[8:]+date[3:5]+date[:2]
-    print "You chose position information for date: " + date
-    filename='glg_poshist_all_' + dateno + '_v00.fit'
-    print filename
-    phlist = poshist(filename)
-    info, coeffs = ephread(phlist['jdlimits'])
-    obj = int(sys.argv[2])
-    print "You have chosen object: " + str(obj)
-    time=np.array([])
+#def main():
+#    date=str(sys.argv[1])
+#    dateno=date[8:]+date[3:5]+date[:2]
+#    print "You chose position information for date: " + date
+#    filename='glg_poshist_all_' + dateno + '_v00.fit'
+#    print filename
+#    phlist = poshist(filename)
+#    info, coeffs = ephread(phlist['jdlimits'])
+#    obj = int(sys.argv[2])
+#    print "You have chosen object: " + str(obj)
+#    time=np.array([])
 #    for i in phlist['phtime']:
-    time=(phlist['phtime'] + phlist['sec_offset'])/8.64e4
+#    time=(phlist['phtime'] + phlist['sec_offset'])/8.64e4
 #        time.append((i+phlist['sec_offset'])/8.64e4)	#time in fraction JD from base_jd
-    print time
-    tbase = phlist['mjdrefi']+2400000.5
-    x, y, z, vx, vy, vz = jplinterp(obj, info, time, tbase, coeffs)
+#    print time
+#    tbase = phlist['mjdrefi']+2400000.5
+#    x, y, z, vx, vy, vz = jplinterp(obj, info, time, tbase, coeffs)
     # For some reason, jplinterp gives out a *list* of a numpy array. Why? Dunno, need to figure out!
-    x=x[0]
-    y=y[0]
-    z=z[0]
-    vx=vx[0]
-    vy=vy[0]
-    vz=vz[0]
-    outfile = sys.argv[3]
-    print "The outfile will be named: " + outfile
-    efile=open(outfile, 'w')
-    efile.write('#x \t y \t z \t vx \t vy \t vz ')
-    efile.write('\n')
-    for (a,b,c,d,e,f) in zip(x, y, z, vx, vy, vz):
-        efile.write(str(a) + '\t' + str(b) + '\t' + str(c) + '\t' + str(d) + '\t' + str(e) + '\t' + str(f))
-        efile.write('\n')
-    efile.close()
+#    x=x[0]
+#    y=y[0]
+#    z=z[0]
+#    vx=vx[0]
+#    vy=vy[0]
+#    vz=vz[0]
+#    outfile = sys.argv[3]
+#    print "The outfile will be named: " + outfile
+#    efile=open(outfile, 'w')
+#    efile.write('#x \t y \t z \t vx \t vy \t vz ')
+#    efile.write('\n')
+#    for (a,b,c,d,e,f) in zip(x, y, z, vx, vy, vz):
+#        efile.write(str(a) + '\t' + str(b) + '\t' + str(c) + '\t' + str(d) + '\t' + str(e) + '\t' + str(f))
+#        efile.write('\n')
+#    efile.close()
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+#    main()
