@@ -1,3 +1,12 @@
+##### MARKOV CHAIN MONTE CARLO
+#
+# my own implementation of Metropolis-Hastings
+# NEEDS: a wrapper around emcee (Foreman-Mackay+ 2012)
+# to interact more easily with my data
+#
+#
+
+
 
 from __future__ import print_function
 import matplotlib.pyplot as plt
