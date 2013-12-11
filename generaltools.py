@@ -503,7 +503,7 @@ class PosHist(Data):
             self.dec = dec
             self.bary = True
         else:
-            print "No RA and Dec given. Will not barycenter!"
+        print "No RA and Dec given. Will not barycenter!"
             self.bary = False
 
         if not fbldata == None:
@@ -834,138 +834,138 @@ def lcm(a,b):
 #
 # !!! LEGACY CODE! DON'T USE! !!!
 #
-def rebin(time, counts, nbins, method = 'sum'):
+#def rebin(time, counts, nbins, method = 'sum'):
 
 
     ### nbins is the number of bins in the new light curve
-    nbins = int(nbins)
-    #print "nbins: " + str(nbins)
-#    print "time: " + str(len(time))
-
+#    nbins = int(nbins)
+#    #print "nbins: " + str(nbins)
+##    print "time: " + str(len(time))
+#
     ### told is the _old_ time resolution
-    told = time[1] - time[0]
+#    told = time[1] - time[0]
 
     ### tseg: length of the entire segment
-    tseg = time[-1] - time[0] + told
+#    tseg = time[-1] - time[0] + told
 
     ### move times to _beginning_ of each bin
-    btime = np.array(time) - told/2.0
+#    btime = np.array(time) - told/2.0
 
     ### dt: new time resolution
-    dt = float(tseg)/float(nbins)
+#    dt = float(tseg)/float(nbins)
 
     ### check whether old time resolution is larger than new time resolution
-    if dt <= told:
+#    if dt <= told:
 #        print "Old time resolution bigger than new time resolution."
 #        print "That's not implemented yet. Returning power spectrum with original resolution."
-        return time, counts, told
+#        return time, counts, told
 
     ### tnew is the ratio of new to old bins
-    tnew = dt/told
+#    tnew = dt/told
 
     ### new array with bin midtimes
-    bintime = [0.5*dt + t*dt for t in range(nbins)]
+#    bintime = [0.5*dt + t*dt for t in range(nbins)]
 
     ### this fraction is useful, because I can define a number of old bins until the 
     ### boundaries of the old and new bins match up again
     ### this makes it easier in some cases
-    tnewfrac = fractions.Fraction(tnew)
+#    tnewfrac = fractions.Fraction(tnew)
 
-    top = tnewfrac.numerator
-    bottom = tnewfrac.denominator
+#    top = tnewfrac.numerator
+#    bottom = tnewfrac.denominator
 
     ### if the fraction turns out insanely big (happens due to rounding errors), then I do
     ### only one iteration (since tseg/tseg = 1)
-    if top > tseg:
-        top = tseg
-        bottom = nbins
+#    if top > tseg:
+#        top = tseg
+#        bottom = nbins
     #print "top: " + str(top)
     #print "bottom: " + str(bottom)
 
-    cbin = []
+#    cbin = []
 
     ### now iterate over all cycles
     #print "tseg/top: " + str(len(tseg/top))
 
 
 
-    for i in range(int(tseg/top)):
+#    for i in range(int(tseg/top)):
 
         ### I need this index to remember where I left off during the iteration
-        before_ind = 0
+#        before_ind = 0
         # print "i: " + str(i)
         ### for each cycle iterate through the number of new bins in that cycle
-        for j in range(bottom):
+#        for j in range(bottom):
             # print "j: " + str(j)
             ### in the first round, start at the lower edge of the bin:
-            if before_ind == 0:
+#            if before_ind == 0:
                 #print "tnew: " + str(tnew)
                 ### this is the first index to use
-                i0 = int(i*top)
+#                i0 = int(i*top)
                 #print "i0: " + str(i0)
                 ### first I sum up all complete old bins in that new bin
-                aint = sum(counts[i0:int(i0+math.floor(tnew))])
+#                aint = sum(counts[i0:int(i0+math.floor(tnew))])
                 #print "lower index: " + str(i0)
                 #print "upper index: " + str(int(i0+math.floor(tnew)))
                 #print "values to sum: " + str(counts[i0:int(i0+math.floor(tnew))])
 
                 ### then I set the index of the old bin that is _not_ completely in the new bin
-                fracind = int(i0 + math.floor(tnew) )
+#                fracind = int(i0 + math.floor(tnew) )
                 #print "fracind 1 : " + str(fracind)
 
                 ### frac is the fraction of the old bin that's in the new bin
-                frac = tnew - math.floor(tnew)
+#                frac = tnew - math.floor(tnew)
                 #print "tnew fractional part: "  + str(tnew- math.floor(tnew))
 
                 ### if frac is not zero, then compute fraction of counts that goes into my new bin
-                if frac < 1.0e-10:
-                    frac =0
+#                if frac < 1.0e-10:
+#                    frac =0
 
-                if not frac == 0:
-                    afrac = frac*counts[fracind]
+#                if not frac == 0:
+#                    afrac = frac*counts[fracind]
                     #print "afrac: " + str(afrac)
-                    cbin.append(aint + afrac) ### append to array with new counts
-                else:
-                    cbin.append(aint)
+#                    cbin.append(aint + afrac) ### append to array with new counts
+#                else:
+#                    cbin.append(aint)
                 #print "cbin: " + str(cbin[-1])
 
                 ### reset before_ind for next iteration in j
-                before_ind = fracind
+#                before_ind = fracind
                 #print "before_ind 1 : " + str(before_ind)
-            else:
+#            else:
 
                 ### This new bin doesn't start at the same position as the old bin, hence I start with the fraction
                 ### afrac1 is the rest of the preceding old bin that was split up
-                afrac1 = (1.0 - frac)*counts[before_ind]
+#                afrac1 = (1.0 - frac)*counts[before_ind]
                 # print "afrac1: " + str(afrac1)
                 ### 1.0-frac of the bin already done, so define new length for the rest: ttemp 
-                ttemp = tnew - (1.0 - frac)
+#                ttemp = tnew - (1.0 - frac)
                 ### take integer part of ttemp and sum up
-                aint = sum(counts[before_ind+1:before_ind+1+int(math.floor(ttemp))])
+#                aint = sum(counts[before_ind+1:before_ind+1+int(math.floor(ttemp))])
                 ### fracind is the index of the last old bin that is split up between the current new bin and the next
-                fracind = int(before_ind + 1 + math.floor(ttemp))
+#                fracind = int(before_ind + 1 + math.floor(ttemp))
                 # print "fracind 2 : " + str(fracind)
                 ### redefine frac
-                frac = ttemp - math.floor(ttemp)
+#                frac = ttemp - math.floor(ttemp)
                 #print "frac: " + str(frac)
-                if frac < 1.0e-10:
-                    frac = 0
+#                if frac < 1.0e-10:
+#                    frac = 0
                 ### if frac is not zero, calculate the part of the old bin that will be in the current new bin
-                if not frac == 0:
-                    afrac2 = frac*counts[fracind]
+ #               if not frac == 0:
+ #                   afrac2 = frac*counts[fracind]
                     #print "afrac2: " + str(afrac2)
-                    cbin.append(afrac1 + aint + afrac2)
-                else:
-                    cbin.append(afrac1+aint)
+#                    cbin.append(afrac1 + aint + afrac2)
+#                else:
+#                    cbin.append(afrac1+aint)
                 #print "cbin: " + str(cbin[-1])
-                before_ind = fracind
+#                before_ind = fracind
                 #print "before_ind 2:" + str(before_ind)
 
-    if method in ['mean', 'avg', 'average', 'arithmetic mean']:
+#    if method in ['mean', 'avg', 'average', 'arithmetic mean']:
 #        print "Method " + method + " chosen."
-        cbin = [c/tnew for c in cbin]
-    elif method not in ['sum']:
-        raise Exception("Method for summing or averaging not recognized. Please enter either 'sum' or 'mean'.")
+#        cbin = [c/tnew for c in cbin]
+#    elif method not in ['sum']:
+#        raise Exception("Method for summing or averaging not recognized. Please enter either 'sum' or 'mean'.")
 
-    return bintime, cbin, dt
+#    return bintime, cbin, dt
 
