@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+#####################
+#
+# Class definition for the light curve class. 
+# Used to create light curves out of photon counting data
+# or to save existing light curves in a class that's easy to use.
+#
+#
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -12,6 +19,8 @@ import math
 import numpy as np
 import fractions
 import scipy.optimize
+
+
 
 
 ### some functions to fit lightcurve profiles
@@ -477,27 +486,26 @@ def addnoise(lc):
 #
 #
 
-
-def energybins(bins, tnew, evt_en, emin, emax):
-    ebin, en, eb=[], [], []
-    print "This is the minimum energy chosen: " + str(bins[0])
-    print "And this is the minimum energy emin[4]: " + str(emin[4])
-    if float(bins[0]) < float(emin[4]):
-        print "The minimum energy specified is smaller than the low-energy cut-off for reliable data. Setting minimum energy to " + str(emin[4])
-        bins[0] = emin[4]
-    if float(bins[1]) > float(emax[-2]):
-        print "The maximum energy specified is larger than the high-energy cut-off for reliable data. Setting maximum energy to " + str(emax[-2])
-        bins[1] = emax[-2]
-    ttetemp, evttemp = [], []
-    for j,temp in enumerate(tnew):
-        if bins[0] <= evt_en[j] < bins[1]:
-            ttetemp.append(temp)
-            evttemp.append(evt_en[j])
-        else: continue
-    print "This is a test 2"
-    tte = {'tebin': ttetemp, 'evtebin':evttemp}
-    print "tte keys: "  + str(tte.keys)
-    return tte
+#def energybins(bins, tnew, evt_en, emin, emax):
+#    ebin, en, eb=[], [], []
+#    print "This is the minimum energy chosen: " + str(bins[0])
+#    print "And this is the minimum energy emin[4]: " + str(emin[4])
+#    if float(bins[0]) < float(emin[4]):
+#        print "The minimum energy specified is smaller than the low-energy cut-off for reliable data. Setting minimum energy to " + str(emin[4])
+#        bins[0] = emin[4]
+#    if float(bins[1]) > float(emax[-2]):
+#        print "The maximum energy specified is larger than the high-energy cut-off for reliable data. Setting maximum energy to " + str(emax[-2])
+#        bins[1] = emax[-2]
+#    ttetemp, evttemp = [], []
+#    for j,temp in enumerate(tnew):
+#        if bins[0] <= evt_en[j] < bins[1]:
+#            ttetemp.append(temp)
+#            evttemp.append(evt_en[j])
+#        else: continue
+#    print "This is a test 2"
+#    tte = {'tebin': ttetemp, 'evtebin':evttemp}
+#    print "tte keys: "  + str(tte.keys)
+#    return tte
  
 
 
@@ -509,56 +517,56 @@ def energybins(bins, tnew, evt_en, emin, emax):
 #        else:
 #            enow=enow+te
 #        ebin.append(enow)
-    print "This is emin: " + str(emin[4]) + " and this emax: " + str(emax[-2])
+#    print "This is emin: " + str(emin[4]) + " and this emax: " + str(emax[-2])
 #    print ebin
-    return ebin
+#    return ebin
 
-def lc(tnew, timestep):
-    timebin=math.floor((tnew[-1]-tnew[0])/timestep)+1
-    counts,histbins=numpy.histogram(tnew, bins=timebin)
-    timestepnew = histbins[1] - histbins[0]
-    lctimes = [histbins[0]+((0.5+n)*timestep) for n in range(int(timebin))]
-    lcdict = {'timestep': timestepnew, 'timebin':timebin, 'histbins':histbins, 'lctimes':lctimes, 'counts': counts}
-    return lcdict
+#def lc(tnew, timestep):
+#    timebin=math.floor((tnew[-1]-tnew[0])/timestep)+1
+#    counts,histbins=numpy.histogram(tnew, bins=timebin)
+#    timestepnew = histbins[1] - histbins[0]
+#    lctimes = [histbins[0]+((0.5+n)*timestep) for n in range(int(timebin))]
+#    lcdict = {'timestep': timestepnew, 'timebin':timebin, 'histbins':histbins, 'lctimes':lctimes, 'counts': counts}
+#    return lcdict
 
-def main():
-    filename=sys.argv[1]
-    bn=sys.argv[1]
-    print "You chose burst number " + str(bn)
-    detec=sys.argv[2]
-    print "You chose detector number: " + str(detec)
-    filename='bn'+ str(bn) + '_n' + str(detec) + '_tte_energy.dat'
-    print "The input file is: " + filename
-    if sys.argv[3] == 0:
-        bins=1
-    else: bins=[sys.argv[3], sys.argv[4]]
-    print "The number of energy bins is: " + str(bins)
-    ttelist= conversion(filename)
-    tnew=ttelist[0]
-    events=ttelist[1]
-    channelconv = conversion('channelconv.dat')
-    emin=channelconv[1]
-    emax=channelconv[2]
-    emid=channelconv[3]
-    ebin = energybins(bins, emin, emax)
-    tte,lcarray = lc(tnew, events, ebin, bins)
-    for i, my_lc in enumerate(lcarray):
-        ttefile=open(str(bn) + '_n' + str(detec) + '_tte_' + str(int(ebin[i])) + 'keVto' + str(int(ebin[i+1])) + 'keV.dat', 'w')
-        ttefile.write('#[time] \t [event]')
-        ttefile.write('\n')
-        for tbin, evtbin in zip(tte[i][0], tte[i][1]):
-            ttefile.write(str(tbin) + "\t" + str(evtbin))
-            ttefile.write('\n')
-        myfile=open(str(bn) + '_n' + str(detec) + '_lc_' + str(int(ebin[i])) + 'keVto' + str(int(ebin[i+1])) + 'keV.dat', 'w')
-        myfile.write('#[time bin] \t [events in energy]')
-        myfile.write('\n')
-        for histbin, n in zip(my_lc[0], my_lc[1]):
-            myfile.write(str(histbin) + "\t" + str(n))
-            myfile.write('\n')
-        myfile.close()
-        ttefile.close()
-    return
+#def main():
+#    filename=sys.argv[1]
+#    bn=sys.argv[1]
+#    print "You chose burst number " + str(bn)
+#    detec=sys.argv[2]
+#    print "You chose detector number: " + str(detec)
+#    filename='bn'+ str(bn) + '_n' + str(detec) + '_tte_energy.dat'
+#    print "The input file is: " + filename
+#    if sys.argv[3] == 0:
+#        bins=1
+#    else: bins=[sys.argv[3], sys.argv[4]]
+#    print "The number of energy bins is: " + str(bins)
+#    ttelist= conversion(filename)
+#    tnew=ttelist[0]
+#    events=ttelist[1]
+#    channelconv = conversion('channelconv.dat')
+#    emin=channelconv[1]
+#    emax=channelconv[2]
+#    emid=channelconv[3]
+#    ebin = energybins(bins, emin, emax)
+#    tte,lcarray = lc(tnew, events, ebin, bins)
+#    for i, my_lc in enumerate(lcarray):
+#        ttefile=open(str(bn) + '_n' + str(detec) + '_tte_' + str(int(ebin[i])) + 'keVto' + str(int(ebin[i+1])) + 'keV.dat', 'w')
+#        ttefile.write('#[time] \t [event]')
+#        ttefile.write('\n')
+#        for tbin, evtbin in zip(tte[i][0], tte[i][1]):
+#            ttefile.write(str(tbin) + "\t" + str(evtbin))
+#            ttefile.write('\n')
+#        myfile=open(str(bn) + '_n' + str(detec) + '_lc_' + str(int(ebin[i])) + 'keVto' + str(int(ebin[i+1])) + 'keV.dat', 'w')
+#        myfile.write('#[time bin] \t [events in energy]')
+#        myfile.write('\n')
+#        for histbin, n in zip(my_lc[0], my_lc[1]):
+#            myfile.write(str(histbin) + "\t" + str(n))
+#            myfile.write('\n')
+#        myfile.close()
+#        ttefile.close()
+#    return
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+#    main()
 
