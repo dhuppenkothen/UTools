@@ -2,8 +2,8 @@
 
 # INTERPOLATE JPL EPHEMERIS POSITIONS
 #
-#
-# NOTE: THIS SCRIPT IS A CONSTRUCTION SITE!
+# Fairly straightforward translation from IDL into python
+# of Craig Markwardt's IDL routine jplephinterp.PRO
 #
 #
 #

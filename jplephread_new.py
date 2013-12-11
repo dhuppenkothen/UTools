@@ -2,7 +2,8 @@
 
 #### READ IN JPL EPHEMERIS FILE
 #
-#
+# Straightforward translation of JPLEPHREAD.PRO written in IDL
+# by Craig Markwardt
 #
 #
 # 
