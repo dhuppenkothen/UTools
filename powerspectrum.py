@@ -349,10 +349,3 @@ class PowerSpectrum(lightcurve.Lightcurve):
 
 
 
-
-#### AUXILIARY FUNCTIONS #######
-
-#def errparam()
-
-
-

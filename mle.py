@@ -2,6 +2,14 @@
 #
 # and assorted other things related to that
 #
+# Separate classes for
+#   - periodograms (distributed as chi^2_2 or chi^2_2m, for averaged periodograms)
+#   - light curves (not really accurate, use scipy.optimize.curve_fit if you can)
+#   - Gaussian Processes (for MAP estimates of GPs)
+#
+# Note: This script has grown over three years. It's not very optimised and doesn't
+# necessarily make sense to someone who is not me. Continue to read on your own peril.
+#
 #
 #
 

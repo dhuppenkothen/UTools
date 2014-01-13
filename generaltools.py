@@ -503,7 +503,7 @@ class PosHist(Data):
             self.dec = dec
             self.bary = True
         else:
-        print "No RA and Dec given. Will not barycenter!"
+            print "No RA and Dec given. Will not barycenter!"
             self.bary = False
 
         if not fbldata == None:
