@@ -15,8 +15,9 @@
 
 #!/usr/bin/env python
 
-import matplotlib
-matplotlib.use("agg")
+#import matplotlib
+#matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
 from pylab import *
 
