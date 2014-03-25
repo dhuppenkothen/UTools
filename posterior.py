@@ -33,7 +33,7 @@ class Posterior(object):
         ### completely uninformative prior: flat distribution for all parameters
         pr = 1.0 
 
-        return log(pr)
+        return np.log(pr)
 
     ### use standard definition of the likelihood as the product of all 
     def loglikelihood(self, t0, neg=False):

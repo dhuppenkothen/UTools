@@ -722,9 +722,14 @@ class MaxLikelihood(object):
  
 
         if neg == True:
-            args = [neg]
+            if scipy.__version__ < "0.10.0":
+                args = [neg]
+            else:
+                args = (neg,)
         else:
-            args = []
+            args = ()
+
+        print("args: " + str(args))
 
         #print("args: " + str(args))
 
