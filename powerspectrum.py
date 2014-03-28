@@ -105,7 +105,7 @@ class PowerSpectrum(lightcurve.Lightcurve):
         ### calculate *actual* new resolution
         self.bindf = flen/bins
         ### rebin power spectrum to new resolution
-        binfreq, binps, dt = self._rebin(self.freq, self.ps, bins, method='mean', verbose=verbose)
+        binfreq, binps, dt = self._rebin_new(self.freq, self.ps, res, method='mean')
         newps = PowerSpectrum()
         newps.freq = binfreq
         newps.ps = binps

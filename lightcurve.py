@@ -254,27 +254,31 @@ class Lightcurve(object):
 
     def _rebin_new(self, time, counts, dtnew, method='sum'):
 
-        step_size = float(dtnew)/float(self.res)
-        
+
+        try:
+            step_size = float(dtnew)/float(self.res)
+        except AttributeError:
+            step_size = float(dtnew)/float(self.df)
+
         output = []
         for i in numpy.arange(0, len(counts), step_size):
             total = 0
-            print "Bin is " + str(i)
+            #print "Bin is " + str(i)
 
             prev_frac = int(i+1) - i
             prev_bin = int(i)
-            print "Fractional part of bin %d is %f"  %(prev_bin, prev_frac)
-            total += prev_frac * time[prev_bin]
+            #print "Fractional part of bin %d is %f"  %(prev_bin, prev_frac)
+            total += prev_frac * counts[prev_bin]
 
             if i + step_size < len(time):
                 # Fractional part of next bin:
                 next_frac = i+step_size - int(i+step_size)
                 next_bin = int(i+step_size)
-                print "Fractional part of bin %d is %f"  %(next_bin, next_frac)
-                total += next_frac * time[next_bin]
+                #print "Fractional part of bin %d is %f"  %(next_bin, next_frac)
+                total += next_frac * counts[next_bin]
 
-            print "Fully included bins: %d to %d" % (int(i+1), int(i+step_size)-1)
-            total += sum(time[int(i+1):int(i+step_size)])
+            #print "Fully included bins: %d to %d" % (int(i+1), int(i+step_size)-1)
+            total += sum(counts[int(i+1):int(i+step_size)])
             output.append(total)
 
         tnew = np.arange(len(output))*dtnew + time[0]
@@ -283,9 +287,10 @@ class Lightcurve(object):
             cbin = np.array(cbinnew)/float(step_size)
         elif method not in ['sum']:
             raise Exception("Method for summing or averaging not recognized. Please enter either 'sum' or 'mean'.")
+        else:
+            cbin = output
 
-
-        return tnew, output, dtnew
+        return tnew, cbin, dtnew
 
 
     ### this method rebins a light curve to a new number of bins 'newbins'
