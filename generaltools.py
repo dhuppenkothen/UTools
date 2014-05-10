@@ -165,6 +165,42 @@ def correlate(x, y, nlags=100, norm=True):
     return rnew
 
 
+###### QUICK AND DIRTY REBINNING OF LIGHT CURVES #####################
+#
+#
+# Does a quick and dirty rebin of light curves by integer numbers.
+#
+#
+#
+#
+#
+#
+#
+def rebin_lightcurve(times, counts, n=10, type='average'):
+
+    nbins = int(len(times)/n)
+    dt = times[1] - times[0]
+    T = times[-1] - times[0] + dt
+    bin_dt = dt*n
+    bintimes = np.arange(nbins)*bin_dt + bin_dt/2.0 + times[0]
+
+    nbins_new = int(len(counts)/n)
+    counts_new = counts[:nbins_new*n]
+    bincounts = np.reshape(np.array(counts_new), (nbins_new, n))
+    bincounts = np.sum(bincounts, axis=1)
+    if type in ["average", "mean"]:
+        bincounts = bincounts/np.float(n)
+    else:
+        bincounts = bincounts
+
+    #bincounts = np.array([np.sum(counts[i*n:i*n+n]) for i in range(nbins)])/np.float(n)
+    #print("len(bintimes): " + str(len(bintimes)))
+    #print("len(bincounts: " + str(len(bincounts)))
+    if len(bintimes) < len(bincounts):
+        bincounts = bincounts[:len(bintimes)]
+
+    return bintimes, bincounts
+
 
 
 ### Hack for Numpy Choice function ###
