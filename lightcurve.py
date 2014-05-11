@@ -81,7 +81,7 @@ class Lightcurve(object):
             else:
                 timebin = np.ceil((self.toa[-1] - self.toa[0])/timestep)
                 frac = (self.toa[-1] - self.toa[0])/timestep - int(timebin - 1)
-            print('tstart: ' + str(tstart))
+            #print('tstart: ' + str(tstart))
 
             tend = tstart + timebin*timestep
 
