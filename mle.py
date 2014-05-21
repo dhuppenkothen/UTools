@@ -1328,7 +1328,7 @@ class PerMaxLike(MaxLikelihood):
             ### plmaxpow is the maximum of 2*data/model 
             plmaxpow = max(plrat[1:])
             #print('plmaxpow: ' + str(plmaxpow))
-            plmaxind = np.where(plrat == plmaxpow)[0][0]
+            plmaxind = np.where(plrat == plmaxpow)[0]
             #print('plmaxind: ' + str(plmaxind))
             plmaxfreq = self.x[plmaxind]
 
@@ -1341,7 +1341,7 @@ class PerMaxLike(MaxLikelihood):
             plmaxind, plmaxfreq = [], []
             for p in plmaxpow:
                 try:
-                    plmaxind_temp = np.where(plrat == p)[0][0]
+                    plmaxind_temp = np.where(plrat == p)[0]
                     plmaxind.append(plmaxind_temp)
                     plmaxfreq.append(self.x[plmaxind_temp])
 
@@ -1406,7 +1406,7 @@ class PerMaxLike(MaxLikelihood):
                 binratio = 2.0*np.array(binps.ps)/binpl
                 #print("len(binratio): " + str(len(binratio)))
                 #print("mean(binratio): " + str(mean(binratio)))
-                maxind = np.where(binratio[1:] == max(binratio[1:]))
+                maxind = np.where(binratio[1:] == max(binratio[1:]))[0]
                 #print('maxind: ' + str(maxind))
                 binmaxpow = "bmax" + str(b)
                 bindict[binmaxpow] = max(binratio[1:])

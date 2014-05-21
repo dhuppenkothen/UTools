@@ -5,7 +5,7 @@ import time as tsys
 
 def pavnosig(power, nspec, nsim=1.0e9):
 
-    if power*nspec > 300:
+    if power*nspec > 30000:
         print("Probability of no signal too miniscule to calculate.")
         return 0.0
 

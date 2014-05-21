@@ -3,7 +3,7 @@ import mle
 import scipy.misc
 
 
-logmin = -100000
+logmin = -10000000000000000.0
 #### POSTERIOR DENSITY OBJECT
 #
 #
