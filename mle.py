@@ -1329,7 +1329,11 @@ class PerMaxLike(MaxLikelihood):
             plmaxpow = max(plrat[1:])
             #print('plmaxpow: ' + str(plmaxpow))
             plmaxind = np.where(plrat == plmaxpow)[0]
-            #print('plmaxind: ' + str(plmaxind))
+            print('plmaxind: ' + str(plmaxind))
+            if len(plmaxind) > 1:
+                plmaxind = plmaxind[0]
+            elif len(plmaxind) == 0:
+                plmaxind = -2
             plmaxfreq = self.x[plmaxind]
 
         else:
@@ -1342,6 +1346,10 @@ class PerMaxLike(MaxLikelihood):
             for p in plmaxpow:
                 try:
                     plmaxind_temp = np.where(plrat == p)[0]
+                    if len(plmaxind_temp) > 1:
+                        plmaxind_temp = plmaxind_temp[0]
+                    elif len(plmaxind_temp) == 0:
+                        plmaxind_temp = -2
                     plmaxind.append(plmaxind_temp)
                     plmaxfreq.append(self.x[plmaxind_temp])
 
@@ -1360,6 +1368,8 @@ class PerMaxLike(MaxLikelihood):
         fitparams['s3max'] = max(s3rat[1:])
         try:
             s3maxind = np.where(s3rat == fitparams['s3max'])[0]
+            if len(s3maxind) > 1:
+                s3maxind = s3maxind[0]
             fitparams['s3maxfreq'] = self.x[s3maxind]
         except TypeError:
             fitparams["s3maxfreq"] = None
@@ -1367,6 +1377,8 @@ class PerMaxLike(MaxLikelihood):
         fitparams['s5max'] = max(s5rat[1:])
         try:
             s5maxind = np.where(s5rat == fitparams['s5max'])[0]
+            if len(s5maxind) > 1:
+                s5maxind = s5maxind[0]
             fitparams['s5maxfreq'] = self.x[s5maxind]
         except TypeError:
             fitparams['s5maxfreq'] = None
@@ -1375,6 +1387,8 @@ class PerMaxLike(MaxLikelihood):
         fitparams['s11max'] = max(s11rat[1:])
         try:
             s11maxind = np.where(s11rat == fitparams['s11max'])[0]
+            if len(s11maxind) > 1:
+                s11maxind = s11maxind[0]
             fitparams['s11maxfreq'] = self.x[s11maxind]
         except TypeError:
             fitparams['s11maxfreq'] = None
