@@ -1407,12 +1407,16 @@ class PerMaxLike(MaxLikelihood):
                 #print("len(binratio): " + str(len(binratio)))
                 #print("mean(binratio): " + str(mean(binratio)))
                 maxind = np.where(binratio[1:] == max(binratio[1:]))[0]
+                if len(maxind) > 1:
+                    maxind = maxind[0]
+                elif len(maxind) == 0 :
+                    maxind = -2
                 #print('maxind: ' + str(maxind))
                 binmaxpow = "bmax" + str(b)
                 bindict[binmaxpow] = max(binratio[1:])
                 binmaxfreq = "bmaxfreq" + str(b)
                 #print("maxind[0]: " + str(maxind[0]+1))
-                bindict[binmaxfreq] = binps.freq[maxind[0]+1]
+                bindict[binmaxfreq] = binps.freq[maxind+1]
                 #setattr(self, "bmax" + str(b), max(binratio[1:]))
                 #setattr(self, "b" + str(b) + "maxfreq", binps.freq[maxind+1]) 
                 bindict['binpl' + str(b)] = binpl
