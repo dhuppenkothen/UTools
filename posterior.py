@@ -94,9 +94,12 @@ class PerPosterior(Posterior):
     ### choose uninformative priors
     def bpl_prior(self,t0):
         pr0 = self.pl_prior([t0[2], t0[1], t0[-1]])
-
+        #print("pr0: " + str(pr0))
         delta =t0[3]
-        pdelta = (delta >= min(self.ps.freq))
+        pdelta = (delta >= min(np.log(self.ps.freq)))
+        #print("delta: " + str(delta))
+        #print("min(self.ps.freq: " + str(np.min(np.log(self.ps.freq))))
+        #print("pdelta: " + str(pdelta))
 
         peps = 1.0
         return pr0*pdelta*peps

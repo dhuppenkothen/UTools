@@ -1275,6 +1275,7 @@ class PerMaxLike(MaxLikelihood):
 
 
         if m == 1:
+            print("I am here")
             lposterior = posterior.PerPosterior(pstemp, func)
         elif m > 1:
             lposterior = posterior.StackPerPosterior(pstemp, func, m)
@@ -1282,10 +1283,14 @@ class PerMaxLike(MaxLikelihood):
         else: 
             raise Exception("Number of power spectra is not a valid number!")
 
+        print("ain: " + str(ain))
+        print("lposterior(initial value): " + str(lposterior(ain)))
+
         if not map:
             lpost = lposterior.loglikelihood
         else:
             lpost = lposterior
+
 #        lpost = posterior.PerPosterior(pstemp, func)
 
         lpostain = lpost(ain)
