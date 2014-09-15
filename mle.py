@@ -2,6 +2,8 @@
 #
 # and assorted other things related to that
 #
+# It's kind of awful code. 
+#
 # Separate classes for
 #   - periodograms (distributed as chi^2_2 or chi^2_2m, for averaged periodograms)
 #   - light curves (not really accurate, use scipy.optimize.curve_fit if you can)
