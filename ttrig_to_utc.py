@@ -1,7 +1,7 @@
 import numpy as np
 import argparse
  
-## convert trigtime to UTC
+## convert Fermi trigtime to UTC
 def ttrig_to_utc(t, trigtime):
 
     ###trigger time in seconds since midnight that day

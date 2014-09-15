@@ -1,9 +1,7 @@
 ##### MARKOV CHAIN MONTE CARLO
 #
 # my own implementation of Metropolis-Hastings
-# NEEDS: a wrapper around emcee (Foreman-Mackay+ 2012)
-# to interact more easily with my data
-#
+# More an academic exercise than a really useful implementation
 #
 
 

@@ -37,17 +37,8 @@ from statsmodels.tools.numdiff import approx_hess
 
 ### own imports
 import generaltools as gt
-import gbm
 import posterior
 import powerspectrum
-### see if rpy is installed; if not, disable R functionality
-try:
-    import rpy2.robjects as robjects
-    rpyflag = True
-    robjects.r.source(os.path.join(os.path.dirname(__file__),'bayes_functions.R'))
-except ImportError:
-    print("Module rpy2 not found. Disabling use of R methods!")
-    rpyflag = False
 
 ### global variables ####
 logmin = -100.0
@@ -568,9 +559,6 @@ class MaxLikelihood(object):
             self.fitmethod = scipy.optimize.fmin_l_bfgs_b
         elif fitmethod.lower() in ['tnc']:
             self.fitmethod = scipy.optimize.fmin_tnc
-        elif fitmethod.lower() in ['nlm', 'r', 'rpy', 'rpy2']:
-            self.fitmethod = robjects.r("nlm")
-            self.nlmflag = True
 
         elif fitmethod.lower() in ['anneal']:
             self.fitmethod = scipy.optimize.anneal

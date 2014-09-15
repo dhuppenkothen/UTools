@@ -41,10 +41,13 @@ def multiply_lightcurves(base_lc, envelope=None, rednoise=None, qpo=None):
     return
 
 
-
-
-
-
+#############################################
+#
+# python implementation of Timmer+Koenig 1995
+# simulations of red noise
+#
+#
+#
 class TimmerPS(powerspectrum.PowerSpectrum):
 
     ### fnyquist = number of points in light curve / 2.0
