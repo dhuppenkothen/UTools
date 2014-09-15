@@ -32,6 +32,8 @@ import scipy.signal
 import math
 import copy
 #from scikits.statsmodels.sandbox.regression.numdiff import approx_hess3 as approx_hess
+from statsmodels.tools.numdiff import approx_hess
+
 
 ### own imports
 import generaltools as gt
@@ -841,7 +843,7 @@ class MaxLikelihood(object):
                 #print("neg: " + str(args))
             ### calculate Hessian approximating with finite differences
                 print("Approximating Hessian with finite differences ...")
-                phess = gt.approx_hess3(aopt[0], optfunc, neg=args)
+                phess = approx_hess(aopt[0], optfunc, neg=args)
 
                 covar = np.linalg.pinv(phess)
                 #phess2 = pl_covariance(self.x, self.y, fitparams['popt'])
