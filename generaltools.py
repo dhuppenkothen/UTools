@@ -62,6 +62,20 @@ try:
 except ImportError:
     print("You don't have jplephread and jplephinterp! You can't do barycentering like this!")
 
+
+
+def search_filenames_recursively(testdir, testexpression):
+    matches = []
+    for root, dirnames, filenames in os.walk(testdir):
+        for filename in fnmatch.filter(filenames, testexpression):
+            matches.append(os.path.join(root, filename))
+
+    return matches
+
+
+
+
+
 ### AUTOCORRELATION FUNCTION ####
 #
 #  Computes the autocorrelation function, i.e. the correlation
