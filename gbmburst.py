@@ -52,14 +52,14 @@ class GBMBurst(Burst, object):
         return
 
 
-        def read_data(self, filename, filetype='ascii', det="combined"):
+    def read_data(self, filename, filetype='ascii', det="combined"):
 
-            Burst.read_data(self, filename, type=filetype)
+        Burst.read_data(self, filename, type=filetype)
 
-            evt = self.photons[det]
-            self.photons = np.array([x.time for x in evt.photons])
-            self.energies = np.array([x.energy for x in evt.photons])
-            return            
+        evt = self.photons[det]
+        self.photons = np.array([x.time for x in evt.photons])
+        self.energies = np.array([x.energy for x in evt.photons])
+        return
  
 
  

@@ -243,7 +243,7 @@ class PerPosterior(Posterior):
            mlp = self.const_prior(t0)
 
         else:
-           print("not running constant prior")
+           #print("not running constant prior")
            mlp = 1.0
 
         if mlp > 0:
