@@ -69,7 +69,7 @@ class PowerSpectrum(lightcurve.Lightcurve):
         f2 = fourier.conjugate() ### do conjugate
         ff = f2*fourier   ### multiply both together
         fr = np.array([x.real for x in ff]) ### get out the real part of ff
-        ps = 2.0*fr[0: (nel/2 )]/nphots
+        ps = 2.0*fr[0: int(nel/2)]/nphots
         freq = np.arange(len(ps))*df
         #print "ps0 : " + str(ps[0])
         #print "df : " + str(df)
