@@ -35,6 +35,13 @@ class Burst(gt.Data,object):
                  epeak = None,
                  ttrig = None ):
 
+	'''
+        photons: either a list of photon objects or a list of arrival times
+        events: energies
+        energies: lower and upper energy bounds
+
+	'''
+
         ### which instrument was used to record this data
         ### note: this makes a difference in terms of file formats
         ### and general data structure
@@ -47,7 +54,7 @@ class Burst(gt.Data,object):
 
         ### assume burst length is in seconds
         self.blen = blength + 0.4*blength
-        self.bend = self.bst + 1.2*blength
+        self.bend = self.bst + self.blen
         self.fluence = fluence
         self.epeak = epeak
         self.ttrig = ttrig
@@ -67,21 +74,31 @@ class Burst(gt.Data,object):
 
         if not events == None:
             self.energies = events
-        startind = photons.searchsorted(self.bst)
-        endind = photons.searchsorted(self.bend)
-        self.photons = self.photons[startind:endind]
-        self.energies = self.energies[startind:endind]
+#        startind = photons.searchsorted(self.bst)
+#        endind = photons.searchsorted(self.bend)
+#        self.photons = self.photons[startind:endind]
+#        self.energies = self.energies[startind:endind]
 
 
         ### filter for energy selection, if this is specified
         #if energies:
         #    gt.Data.filterenergy(self, energies[0], energies[1])
-        if energies:
+        
+	if energies:
             self.photons = np.array([s for s,e in zip(self.photons, self.energies) if energies[0] <= e <=energies[1]])
             self.energies = np.array([e for s,e in zip(self.photons, self.energies) if energies[0] <= e <=energies[1]])
 
         #### filter for burst times
         #gt.Data.filterburst([self.bst-0.1*self.blen, self.bend+0.1*self.blen])
+        
+        print("bst: " + str(self.bst))
+        print("bend: " + str(self.bend))
+	startind = self.photons.searchsorted(self.bst)
+        print("startind: " + str(startind))
+	endind = self.photons.searchsorted(self.bend)
+        print("endind: " + str(endind))
+        self.photons = self.photons[startind:endind]
+        self.energies = self.energies[startind:endind]
 
         ### make a light curve
         self.time = self.photons
@@ -124,17 +141,25 @@ class Burst(gt.Data,object):
             events = np.array([float(e) for e in data[1]])
             self.photons = [Photon(t,e) for t,e in zip(time, events)]
         elif type in ["p", "pickle"]:
-            self.photons = gt.getpickle(filename)
+            data = gt.getpickle(filename)
+            evt = data["combined"]
+            self.photons = evt.photons
         else:
             raise Exception("File type not recognized! Must be one of 'pickle' or 'ascii'!")
         return 
 
 
             
-    def bayesian_analysis(self, namestr='test', nchain=500, niter=100, nsim=1000, m=1, fitmethod='bfgs'):
+    def bayesian_analysis(self, namestr='test', nchain=500, niter=100, nsim=1000, m=1, fitmethod='bfgs',
+                          rebin_ps = False, df=1.0):
+
+        if rebin_ps:
+            ps = self.ps.rebinps(df)
+        else:
+            ps = self.ps
 
         if bayesflag:
-            btest = bayes.Bayes(self.ps, namestr=namestr, m=m)
+            btest = bayes.Bayes(ps, namestr=namestr, m=m)
             psfit, fakeper, self.model_summary = btest.choose_noise_model(mle.pl, [2,3,0.5], mle.bpl, [1,3,2,3,0.5], nchain=nchain, niter=niter, nsim=nsim, fitmethod=fitmethod)
 
             if not psfit:
