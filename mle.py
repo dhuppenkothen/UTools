@@ -738,7 +738,7 @@ class MaxLikelihood(object):
 
             ## Newton conjugate gradient, which doesn't work
             elif self.fitmethod == scipy.optimize.fmin_ncg:
-                aopt = self.fitmethod(optfunc, ain, disp=0, optfuncprime, args=args)
+                aopt = self.fitmethod(optfunc, ain, optfuncprime, disp=0,args=args)
 
             ## use R's non-linear minimization
             elif self.nlmflag == True:
@@ -1246,7 +1246,7 @@ class PerMaxLike(MaxLikelihood):
         ### If last parameter is noise level, renormalize noise level
         ### to something useful:
         if not noise == None:
-            print("Renormalizing noise level ...")
+            #print("Renormalizing noise level ...")
             ### take the last 50 elements of the power spectrum
             noisepower = power[-51:-1]
             meannoise = np.log(np.mean(noisepower))
@@ -1262,7 +1262,7 @@ class PerMaxLike(MaxLikelihood):
 
 
         if m == 1:
-            print("I am here")
+            #print("I am here")
             lposterior = posterior.PerPosterior(pstemp, func)
         elif m > 1:
             lposterior = posterior.StackPerPosterior(pstemp, func, m)
@@ -1270,8 +1270,8 @@ class PerMaxLike(MaxLikelihood):
         else: 
             raise Exception("Number of power spectra is not a valid number!")
 
-        print("ain: " + str(ain))
-        print("lposterior(initial value): " + str(lposterior(ain)))
+        #print("ain: " + str(ain))
+        #print("lposterior(initial value): " + str(lposterior(ain)))
 
         if not map:
             lpost = lposterior.loglikelihood
@@ -1321,7 +1321,7 @@ class PerMaxLike(MaxLikelihood):
             plmaxpow = max(plrat[1:])
             #print('plmaxpow: ' + str(plmaxpow))
             plmaxind = np.where(plrat == plmaxpow)[0]
-            print('plmaxind: ' + str(plmaxind))
+            #print('plmaxind: ' + str(plmaxind))
             if len(plmaxind) > 1:
                 plmaxind = plmaxind[0]
             elif len(plmaxind) == 0:

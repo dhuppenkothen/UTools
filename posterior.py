@@ -63,7 +63,7 @@ class PerPosterior(Posterior):
     ### note: at the moment, only mle.pl and mle.bpl are supported
     def __init__(self, ps, func):
        self.ps=ps
-       print('I am here!')
+       #print('I am here!')
        Posterior.__init__(self,ps.freq[1:], ps.ps[1:], func)
        #super(Posterior,self).__init__(ps.freq[1:], ps.ps[1:], func)
 

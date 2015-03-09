@@ -146,7 +146,7 @@ class Lightcurve(object):
         if implementation in ["o", "old"]:
             self.bintime, self.bincounts, self.binres = self._rebin(self.time, self.counts, nbins, method, verbose=verbose)
         else:
-            print("I am here")
+            #print("I am here")
             self.bintime, self.bincounts, self.binres = self._rebin_new(self.time, self.counts, newres, method)
 
     def bkgestimate(self, tseg, loc='both'):
