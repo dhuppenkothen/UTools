@@ -562,8 +562,6 @@ class MaxLikelihood(object):
         elif fitmethod.lower() in ['tnc']:
             self.fitmethod = scipy.optimize.fmin_tnc
 
-        elif fitmethod.lower() in ['anneal']:
-            self.fitmethod = scipy.optimize.anneal
         else:
             print("Minimization method not recognized. Using standard (Powell's) method.")
             self.fitmethod = scipy.optimize.fmin_powell
@@ -721,7 +719,7 @@ class MaxLikelihood(object):
         else:
             args = ()
 
-        print("args: " + str(args))
+        #print("args: " + str(args))
 
         #print("args: " + str(args))
 
@@ -736,11 +734,11 @@ class MaxLikelihood(object):
                     bounds = [[None, None] for x in range(len(ain))]
                 #print("No bounds given. Using no bounds.")
 
-                aopt = self.fitmethod(optfunc, ain, args=args, bounds = bounds, approx_grad=True, maxfun=1000)
+                aopt = self.fitmethod(optfunc, ain, disp=0, args=args, bounds = bounds, approx_grad=True, maxfun=1000)
 
             ## Newton conjugate gradient, which doesn't work
             elif self.fitmethod == scipy.optimize.fmin_ncg:
-                aopt = self.fitmethod(optfunc, ain, optfuncprime, args=args)
+                aopt = self.fitmethod(optfunc, ain, disp=0, optfuncprime, args=args)
 
             ## use R's non-linear minimization
             elif self.nlmflag == True:
@@ -759,7 +757,7 @@ class MaxLikelihood(object):
 
                 ### BFGS algorithm
             elif self.fitmethod == scipy.optimize.fmin_bfgs:
-                aopt = self.fitmethod(optfunc, ain, full_output=True, args=args)
+                aopt = self.fitmethod(optfunc, ain, disp=0,full_output=True, args=args)
 
                 warnflag = aopt[6]
                 if warnflag == 1 :
@@ -767,13 +765,10 @@ class MaxLikelihood(object):
                 elif warnflag == 2:
                     print("Gradient and/or function calls not changing!")
 
-            ### annealing 
-            elif self.fitmethod == scipy.optimize.anneal:
-                aopt = self.fitmethod(optfunc, ain, schedule='fast', args=args)
 
             ## all other methods: Simplex, Powell, Gradient
             else:
-                aopt = self.fitmethod(optfunc, ain, full_output = True, args=args)
+                aopt = self.fitmethod(optfunc, ain, disp=0,full_output = True, args=args)
 
             funcval = aopt[1]
             ain = np.array(ain)*((np.random.rand(len(ain))-0.5)*4.0)
