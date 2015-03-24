@@ -589,7 +589,7 @@ class MaxLikelihood(object):
 
         ### extract frequency and powers from periodogram
         #freq = np.array(self.x)
-        #if not residuals == None:
+        #if not residuals is None:
         #    power = residuals
         #else:
         #    power = np.array(self.y)
@@ -607,7 +607,7 @@ class MaxLikelihood(object):
  
         ### If last parameter is noise level, renormalize noise level
         ### to something useful:
-        #if not noise == None:
+        #if not noise is None:
         #    ### take the last 50 elements of the power spectrum
         #    noisepower = power[-50:]
         #    meannoise = np.log(np.mean(noisepower))
@@ -730,7 +730,7 @@ class MaxLikelihood(object):
         while funcval == 100 or funcval == 200 or funcval == 0.0 or funcval == np.inf or funcval == -np.inf:
         ## constrained minimization with truncated newton or constrained bfgs
             if self.fitmethod == scipy.optimize.fmin_tnc or self.fitmethod == scipy.optimize.fmin_l_bfgs_b:
-                if bounds == None:
+                if bounds is None:
                     bounds = [[None, None] for x in range(len(ain))]
                 #print("No bounds given. Using no bounds.")
 
@@ -1228,7 +1228,7 @@ class PerMaxLike(MaxLikelihood):
             raise Exception('No valid option for kwarg "smooth". Options are 0,3,5 and 11!')
 
         
-        if not residuals == None:
+        if not residuals is None:
             power = residuals
 
         lenpower = float(len(power))
@@ -1245,7 +1245,7 @@ class PerMaxLike(MaxLikelihood):
         #print('noise index: ' + str(noise))
         ### If last parameter is noise level, renormalize noise level
         ### to something useful:
-        if not noise == None:
+        if not noise is None:
             #print("Renormalizing noise level ...")
             ### take the last 50 elements of the power spectrum
             noisepower = power[-51:-1]
@@ -1516,7 +1516,7 @@ class LightcurveMaxLike(MaxLikelihood):
 
     def mlest(self, func, ain, bounds = None, obs=True, noise=None, residuals = None, nmax=1):
 
-        if not residuals == None:
+        if not residuals is None:
             counts = residuals
             self.y= residuals
             self.lc.counts = residuals

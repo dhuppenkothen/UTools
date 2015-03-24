@@ -38,7 +38,7 @@ def sin(x, a,b,c,d):
 class Lightcurve(object):
     def __init__(self, time, counts = None, timestep=1.0, tseg=None, verbose = False, tstart = None):
 
-        if counts == None:
+        if counts is None:
             if verbose == True:
                 print "You put in time of arrivals."
                 print "Time resolution of light curve: " + str(timestep)
@@ -65,7 +65,7 @@ class Lightcurve(object):
 
             ## tstart is an optional parameter to set a starting time for the light curve
             ## in case this does not coincide with the first photon
-            if self.tstart == None:
+            if self.tstart is None:
                 ## if tstart is not set, assume light curve starts with first photon
                 tstart = self.toa[0]
             else:

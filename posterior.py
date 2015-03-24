@@ -359,7 +359,7 @@ class GaussProcPosterior(Posterior):
 
     def __init__(self,x,y, covariance, ncovar=None, fun=None):
         ### fun is the envelope function; if None, then fun=1.0
-        if fun == None:
+        if fun is None:
             self.fun = 1.0
         else:
             self.fun = fun
@@ -390,7 +390,7 @@ class GaussProcPosterior(Posterior):
 
     def loglikelihood(self, t0):
 
-        if not self.ncovar == None:
+        if not self.ncovar is None:
             theta_cov = t0[:self.ncovar]
             theta_fun = t0[self.ncovar:]
         else:

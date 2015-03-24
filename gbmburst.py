@@ -34,7 +34,7 @@ class GBMBurst(Burst, object):
         self.bid = bid
 
         ### if photons and filename aren't given, then data comes from procdata file
-        if photons ==None and not filename:
+        if photons is None and not filename:
            filename = "tte_bn" + str(bid) + "_procdata.dat"
        
         Burst.__init__(self, bstart, blength,

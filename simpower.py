@@ -110,7 +110,7 @@ class TimmerPS(powerspectrum.PowerSpectrum):
 
         elif psshape.lower() in ['manual', 'psmanual']:
         
-            if not psmanual == None:
+            if not psmanual is None:
                 #print(sum(psmanual/sum(psmanual))) 
                 ### for now, assume variance normalization
                 #s = (psmanual/sum(psmanual))*lnvar*fnyquist*self.n**2.0/2.0
@@ -205,7 +205,7 @@ class TimmerPS(powerspectrum.PowerSpectrum):
         ###light curve such that there are no values < 0:
         if expon == False:
             flux = phi 
-        elif expon == True and not lcmean == None:
+        elif expon == True and not lcmean is None:
             lncounts = np.exp(phi)
             flux = lncounts*lcmean/np.mean(lncounts)
         else:

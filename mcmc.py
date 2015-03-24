@@ -454,7 +454,7 @@ class MetropolisHastings(MarkovChainMonteCarlo, object):
         else:
             self.burnin = burnin
 
-        if popt==None and cov==None:
+        if popt is None and cov is None:
             try:
                 self.popt
                 self.cov
@@ -556,7 +556,7 @@ class MarkovChain(object):
         self.terr = np.sqrt(np.diag(tcov))
 
 
-        if paraname == None:
+        if paraname is None:
            paraname = ['alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta', 'eta', 'iota', 'lappa', 'lambda', 'mu']
 
 
@@ -609,9 +609,9 @@ class MHChain(MarkovChain, object):
 
     def run_chain(self, t0=None, niter = None, burnin = None):
 
-        if not niter == None:
+        if not niter is None:
             self.niter = niter
-        if not burnin == None: 
+        if not burnin is None: 
             if burnin < 1.0:
                 self.burnin = burnin*niter
                 self.allsamples = self.niter
@@ -619,7 +619,7 @@ class MHChain(MarkovChain, object):
                 self.burnin = burnin
                 self.allsamples = burnin + self.niter
 
-        if t0 == None:
+        if t0 is None:
             t0 = self.pdist(self.popt, self.cov)
 
 

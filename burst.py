@@ -62,17 +62,17 @@ class Burst(gt.Data,object):
  
         ### data is in form of Photon objects such that time/energy filtering
         ### becomes easy
-        if photons==None and filename:
+        if photons is None and filename:
             self.read_data(filename)
 
-        elif not photons == None:
+        elif not photons is None:
             self.photons = photons
  
         else:
             raise Exception("Data missing! You must specify either a photon object or a file name from which to read the data!")
 
 
-        if not events == None:
+        if not events is None:
             self.energies = events
 #        startind = photons.searchsorted(self.bst)
 #        endind = photons.searchsorted(self.bend)

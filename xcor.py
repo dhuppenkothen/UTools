@@ -32,7 +32,7 @@ def convolution(xdata, ydata, nlags=100, norm=True):
         corval = np.sum(xext*yext)/(xstd*ystd)
         cor.append(corval)
 
-    if not nlags == None:
+    if not nlags is None:
         cor = cor[lx-nlags:lx+nlags]
 
     if norm:
@@ -71,7 +71,7 @@ def crosscorrelation(xdata, ydata, nlags=100, norm=True):
         corval = np.sum(xext*yext)/(xstd*ystd)
         cor.append(corval)
 
-    if not nlags == None:
+    if not nlags is None:
         cor = cor[lx-nlags:lx+nlags]
 
     if norm:

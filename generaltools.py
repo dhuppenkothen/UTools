@@ -241,7 +241,7 @@ def choice_hack(data, weights=None, size=None):
 
     #print "len(data): " + str(len(data))
     ### if no weights are given, all choices have equal probability
-    if weights == None:
+    if weights is None:
         weights = [1.0/float(len(data)) for x in range(len(data))]
 
     #print("weights: " + str(weights))
@@ -265,7 +265,7 @@ def choice_hack(data, weights=None, size=None):
 
 
     ### If no size given, just print one number
-    if size == None:
+    if size is None:
         randno = np.random.rand()
 
     ### Else make sure that size is an integer
@@ -378,7 +378,7 @@ class Data(object):
     def filterburst(self, bursttimes, blen=None, bary=False):
         tstart= bursttimes[0]
         tend = bursttimes[1]
-        if blen == None:
+        if blen is None:
             blen = tend - tstart
 
         #tunbary = np.array([s.unbarycentered for s in self.photons])
@@ -474,7 +474,7 @@ class PosHist(Data):
     def __init__(self, ra = None, dec = None, fbldata = None, fblpath = None):
 
         ### store RA and Dec for barycentering
-        if not ra == None and not dec == None:
+        if not ra is None and not dec is None:
             self.ra = ra
             self.dec = dec
             self.bary = True
@@ -482,7 +482,7 @@ class PosHist(Data):
             print "No RA and Dec given. Will not barycenter!"
             self.bary = False
 
-        if not fbldata == None:
+        if not fbldata is None:
             PosHist.fbldata = fbldata
         else:
             PosHist.fbldata = self._readfbl(fblpath=fblpath)
@@ -500,7 +500,7 @@ class PosHist(Data):
     ### dedicated method that needs it! 
     def _readfbl(self, fblpath = None):
 
-        if fblpath == None:
+        if fblpath is None:
             fbldir = os.path.dirname(__file__)
         else:
             fbldir = fblpath
@@ -717,7 +717,7 @@ def ask_limits(prompt, retries=3, complaint='yes or no, please!'):
 #               - postscript
 #
 def makeplot(x, y, xlabel, ylabel, title, xrange, yrange, log, outfile):
-    if matplotlib == None:
+    if matplotlib is None:
         print "Matplotlib not installed. Returning ..."
         return
     plt.plot(x, y, color='black')

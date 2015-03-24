@@ -35,10 +35,10 @@ class PowerSpectrum(lightcurve.Lightcurve):
 
         self.norm = norm
 
-        if isinstance(lc, lightcurve.Lightcurve) and counts == None:             
+        if isinstance(lc, lightcurve.Lightcurve) and counts is None:             
             pass
             # print "You put in an object of type Lightcurve. Go you!"
-        elif not lc == None and not counts == None:
+        elif not lc is None and not counts is None:
             if verbose == True:
                 print "You put in a standard light curve (I hope). Converting to object of type Lightcurve"
             lc = lightcurve.Lightcurve(lc, counts, verbose=verbose)
@@ -49,7 +49,7 @@ class PowerSpectrum(lightcurve.Lightcurve):
             return
         #    raise Exception("You screwed up. Put in either a Lightcurve or two lists of time, counts")
 
-        if nphot == None:
+        if nphot is None:
             nphots = np.sum(lc.counts)
         else:
             nphots = nphot

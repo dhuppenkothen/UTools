@@ -9,11 +9,11 @@ class Spectrum(object):
 
     def __init__(self, data = None, freq = None, flux = None, unit='erg'):
 
-        if data == None and not freq == None and not flux == None:
+        if data is None and not freq is None and not flux is None:
             self.freq = np.array(frequency)
             self.flux = np.array(flux)
 
-        elif not data == None and freq == None and flux == None:
+        elif not data is None and freq is None and flux is None:
             self.read_spectrum(data)
 
         else:
