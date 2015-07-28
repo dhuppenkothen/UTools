@@ -2,6 +2,7 @@ import numpy as np
 import math
 import scipy
 import scipy.optimize
+import scipy.stats
 import lightcurve
 import generaltools
 
@@ -176,9 +177,50 @@ class PowerSpectrum(lightcurve.Lightcurve):
             dfnewlist.append(dfnew) 
             ilow = ihigh
 
-                
         return freqgeo, psgeo, dfnewlist
-    ##########################################
+        ##########################################
+
+    def rebin_log(self, f=0.01):
+        """
+        Logarithmic rebin of the periodogram.
+        The new frequency depends on the previous frequency
+        modified by a factor f:
+
+        dnu_j = dnu_{j-1}*(1+f)
+
+        Parameters:
+        -----------
+        f: float, optional, default 0.01
+            parameter that steers the frequency resolution
+
+
+        Returns:
+            binfreq: numpy.ndarray
+                the binned frequencies
+            binps: numpy.ndarray
+                the binned powers
+        """
+
+        ## starting frequency resolution
+        df = self.df
+        df_all = [df]
+
+        f_start = 0.0
+
+        f_range = [f_start]
+        while f_start+df <= self.freq[-1]+df/2.:
+            f_start += df
+            f_range.append(f_start)
+            df *= (1.+f)
+            df_all.append(df)
+
+        binps, _, _ = scipy.stats.binned_statistic(self.freq,
+                                                   self.ps,
+                                                   statistic="mean",
+                                                   bins=f_range)
+
+        binfreq = np.array(f_range)[:-1] + np.diff(f_range)
+        return binfreq, binps
 
 
     def findmaxpower(self):
