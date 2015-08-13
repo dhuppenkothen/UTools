@@ -3,44 +3,39 @@
 import numpy as np
 import time as tsys
 
-def pavnosig(power, nspec, nsim=1.0e9):
+def pavnosig(power, nspec, nsim=1.0e9, verbose=False):
 
     if power*nspec > 30000:
-        print("Probability of no signal too miniscule to calculate.")
+	if verbose:
+            print("Probability of no signal too miniscule to calculate.")
         return 0.0
 
     else:
-        fn = pavnosigfun(power, nspec, nsim)
-
-        print("Pr(Averaged power lies above P if no signal present) = %.4e" %fn)
+        fn = pavnosigfun(power, nspec, nsim, verbose)
+        if verbose:
+            print("Pr(Averaged power lies above P if no signal present) = %.4e" %fn)
         return fn
 
 
 
-def pavnosigfun(power, nspec, nsim = 1.0e6):
+def pavnosigfun(power, nspec, nsim = 1.0e6, verbose=False):
 
     tst = tsys.clock()
 
     if nsim < 1.0e7:
-
         chisquare = np.random.chisquare(2*nspec, size=nsim)/nspec
-
-        print("The mean of the distribution is %f" %np.mean(chisquare))
-        print("The variance of the distribution is %f" %np.var(chisquare))
+        if verbose:
+            print("The mean of the distribution is %f" %np.mean(chisquare))
+            print("The variance of the distribution is %f" %np.var(chisquare))
 
         pval_ind = np.where(power < chisquare)[0]
         pval = len(pval_ind)/nsim
-
     else:
-
         pval = pavnosigfun_idl(power, nspec)
 
-
-    #print("The probability of observing P = %f under the assumption of noise is %.7f" %(power, pval))
-
     tend = tsys.clock()
-
-    print("computation time %f" %(tend-tst))
+    if verbose:
+        print("computation time %f" %(tend-tst))
     return pval
 
 
