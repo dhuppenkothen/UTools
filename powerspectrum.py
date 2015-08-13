@@ -32,7 +32,7 @@ def add_ps(psall, method='avg'):
 
 ### REDOING THIS IN CLASSES ####
 class PowerSpectrum(lightcurve.Lightcurve):
-    def __init__(self, lc = None, counts = None, nphot=None, norm='leahy', verbose=False):
+    def __init__(self, lc = None, counts = None, nphot=None, norm='leahy', m=1, verbose=False):
 
         self.norm = norm
 
@@ -55,48 +55,31 @@ class PowerSpectrum(lightcurve.Lightcurve):
         else:
             nphots = nphot
         nel = np.round(lc.tseg/lc.res)
-        #print(nel)
-        #if lc.tseg/lc.res > nel:
-        #    nel = nel + 1
      
-        #print "lc.tseg: " + str(lc.tseg)
-        #print "lc.res: " + str(lc.res)
         df = 1.0/lc.tseg
         fnyquist = 0.5/(lc.time[1]-lc.time[0])
-        #freq = np.arange(nel/2)*df ### make a list of frequencies 
-        #print "len(freq): " + str(len(freq))
-        #print "len(lc.counts): " + str(len(lc.counts))
+        
         fourier= scipy.fft(lc.counts) ### do Fourier transform
         f2 = fourier.conjugate() ### do conjugate
         ff = f2*fourier   ### multiply both together
         fr = np.array([x.real for x in ff]) ### get out the real part of ff
         ps = 2.0*fr[0: int(nel/2)]/nphots
-        freq = np.arange(len(ps))*df
-        #print "ps0 : " + str(ps[0])
-        #print "df : " + str(df)
-        #print "nel: " + str(nel)
-        #print "nphots" + str(nphots)
  
 
         if norm.lower() in ['leahy']:
             self.ps = ps#2.0*fr[0: (nel/2 -1)]/nphots   ### do the power spectrum
             
         elif norm.lower() in ['rms']:
-            #self.ps = 2.0*lc.tseg*2.0*np.sqrt(nel)*fr[0:(nel/2 -1)]/(nphots**2.0)
             self.ps = ps/(df*nphots)        
-            #print "ps rms: " + str(self.ps[0])
-        ### put frequency to mid-frequencies
         elif norm.lower() in ['variance', 'var']:
-            #self.ps = ps*nphots/len(lc.counts)
             self.ps = ps*nphots/len(lc.counts)**2.0
 
-            #self.ps = ps*nphots/(2.0*fnyquist)**2.0
 
-
-        self.freq = [f+(freq[1]-freq[0])/2.0 for f in freq]
-        self.df = self.freq[1] - self.freq[0]
+        self.df = df
+        self.freq = np.arange(len(ps))*df + df/2.
         self.nphots = nphots
         self.n = len(lc.counts)
+        self.m = m
 
     def rebinps(self, res, verbose=False):
         ### frequency range of power spectrum
