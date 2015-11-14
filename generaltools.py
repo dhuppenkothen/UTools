@@ -479,7 +479,7 @@ class PosHist(Data):
             self.dec = dec
             self.bary = True
         else:
-            print "No RA and Dec given. Will not barycenter!"
+            print("No RA and Dec given. Will not barycenter!")
             self.bary = False
 
         if not fbldata is None:
@@ -488,8 +488,8 @@ class PosHist(Data):
             PosHist.fbldata = self._readfbl(fblpath=fblpath)
 
         if self.bary == True:
-            try:
-                print "Barycentering satellite position history ..."
+            try: 
+                print("Barycentering satellite position history ...")
                 self.tdiff = self.baryposhist(PosHist.fbldata)
             except AttributeError:
                 raise Exception("You don't want to run this! Run subclass instead!")
@@ -705,8 +705,8 @@ def ask_limits(prompt, retries=3, complaint='yes or no, please!'):
               return input
           if ok in ('n', 'no', 'nop', 'nope'):
               return False
-          if retries<0 : raise IOError, 'refusenik user'
-          print complaint
+          if retries<0 : raise IOError('refusenik user')
+          print(complaint)
 ######################################################################
 
 
@@ -718,7 +718,7 @@ def ask_limits(prompt, retries=3, complaint='yes or no, please!'):
 #
 def makeplot(x, y, xlabel, ylabel, title, xrange, yrange, log, outfile):
     if matplotlib is None:
-        print "Matplotlib not installed. Returning ..."
+        print("Matplotlib not installed. Returning ...")
         return
     plt.plot(x, y, color='black')
     if log == True:
