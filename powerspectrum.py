@@ -41,7 +41,7 @@ class PowerSpectrum(lightcurve.Lightcurve):
             # print "You put in an object of type Lightcurve. Go you!"
         elif not lc is None and not counts is None:
             if verbose == True:
-                print "You put in a standard light curve (I hope). Converting to object of type Lightcurve"
+                print("You put in a standard light curve (I hope). Converting to object of type Lightcurve")
             lc = lightcurve.Lightcurve(lc, counts, verbose=verbose)
         else:
             self.freq = None
@@ -218,7 +218,7 @@ class PowerSpectrum(lightcurve.Lightcurve):
         noiseminfreq = np.array(freq).searchsorted(1000.0)
         noise = np.mean(self.ps[noiseminfreq:])
 
-        print "The noise level above 1000 Hz is: " + str(noise)
+        print("The noise level above 1000 Hz is: " + str(noise))
         if noise < 1.95 or noise > 2.05:
             self.deadtime = True
         else:
@@ -241,7 +241,7 @@ class PowerSpectrum(lightcurve.Lightcurve):
         ### covar contains the estimated covariance of pfinal
         ### The diagonals provide the variance of the parameter estimate
         if verbose == True:
-            print "Fitting power law  + constant with initial guesses " + str(p_init) + " ..."
+            print("Fitting power law  + constant with initial guesses " + str(p_init) + " ...")
         pfinal, covar = scipy.optimize.curve_fit(func, logf[1:maxpl+1], logps[1:maxpl+1], p0=p_init)
         if verbose == True:
             print("The best-fit parameters for a function of type b*x**a + c are: ")
@@ -287,7 +287,7 @@ class PowerSpectrum(lightcurve.Lightcurve):
 
         noiseminfreq = np.array(freq).searchsorted(1000.0)
         noise = np.mean(self.ps[noiseminfreq:])
-        print "The noise level above 1000 Hz is: " + str(noise)
+        print("The noise level above 1000 Hz is: " + str(noise))
         #func = lambda x, a, b: b*(x**a) + noise
         func = lambda x,a,b: a*x+b
         
@@ -303,12 +303,12 @@ class PowerSpectrum(lightcurve.Lightcurve):
         ### covar contains the estimated covariance of pfinal
         ### The diagonals provide the variance of the parameter estimate
         if verbose == True:
-            print "Fitting power law  + constant with initial guesses " + str(p_init) + " ..."
+            print("Fitting power law  + constant with initial guesses " + str(p_init) + " ...")
         pfinal, covar = scipy.optimize.curve_fit(func, logf[1:maxpl+1], logps[1:maxpl+1], p0=p_init)
         if verbose == True:
-            print "The best-fit parameters for a function of type b*x**a + c are: "
-            print "a = " + str(pfinal[0])
-            print "b = " + str(pfinal[1])
+            print("The best-fit parameters for a function of type b*x**a + c are: ")
+            print("a = " + str(pfinal[0]))
+            print("b = " + str(pfinal[1]))
             #print "c = " + str(pfinal[2])
 
             #print "Note that c is the average noise level."
