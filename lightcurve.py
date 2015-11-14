@@ -40,8 +40,8 @@ class Lightcurve(object):
 
         if counts is None:
             if verbose == True:
-                print "You put in time of arrivals."
-                print "Time resolution of light curve: " + str(timestep)
+                print("You put in time of arrivals.")
+                print("Time resolution of light curve: " + str(timestep))
             ### TOA has a list of photon times of arrival
             self.toa = time
             self.ncounts = len(self.toa)
@@ -105,9 +105,9 @@ class Lightcurve(object):
                 self.counts = np.array(counts) 
             ### time resolution of light curve
             if verbose == True:
-                print "Please note: "
-                print "You specified the time resolution as: " + str(timestep)+ "."
-                print "The actual time resolution of the light curve is: " + str(self.res) +"."
+                print("Please note: ")
+                print("You specified the time resolution as: " + str(timestep)+ ".")
+                print("The actual time resolution of the light curve is: " + str(self.res) +".")
 
             self.countrate = self.counts/self.res
             self.time = np.array([histbins[0] + 0.5*self.res + n*self.res for n in range(int(timebin))])
@@ -141,7 +141,7 @@ class Lightcurve(object):
         ### calculate number of bins in new light curve
         nbins = math.floor(self.tseg/newres)+1
         self.binres = self.tseg/nbins
-        print "New time resolution is: " + str(self.binres)
+        print("New time resolution is: " + str(self.binres))
 
         if implementation in ["o", "old"]:
             self.bintime, self.bincounts, self.binres = self._rebin(self.time, self.counts, nbins, method, verbose=verbose)
@@ -306,9 +306,9 @@ class Lightcurve(object):
         #print "tseg: " + str(tseg)
 
         if verbose == True:
-            print "nbins: " + str(nbins)
-            print "told: " + str(told)
-            print "tseg: " + str(tseg)
+            print("nbins: " + str(nbins))
+            print("told: " + str(told))
+            print("tseg: " + str(tseg))
 
         ### move times to _beginning_ of each bin
         btime = np.array(time) - told/2.0
@@ -319,8 +319,8 @@ class Lightcurve(object):
         ### check whether old time resolution is larger than new time resolution
         if dt <= told:
             if verbose == True:
-                print "Old time resolution bigger than new time resolution."
-                print "That's not implemented yet. Returning power spectrum with original resolution."
+                print("Old time resolution bigger than new time resolution.")
+                print("That's not implemented yet. Returning power spectrum with original resolution.")
             return time, counts, told
 
 
